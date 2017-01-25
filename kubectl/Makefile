@@ -9,6 +9,7 @@ version:
 
 download:
 	@if [ ! -e kubectl_$(KUBE_VERSION) ]; then \
+		printf "\nDownloading kubectl...\n"; \
 		curl  -o kubectl_$(KUBE_VERSION) -LO https://storage.googleapis.com/kubernetes-release/release/v$(KUBE_VERSION)/bin/linux/amd64/kubectl; \
 	fi
 

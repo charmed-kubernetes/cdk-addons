@@ -9,6 +9,7 @@ version:
 
 download:
 	@if [ ! -e kube-controller-manager_$(KUBE_VERSION) ]; then \
+		printf "\nDownloading kube-controller-manager...\n"; \
 		curl  -o kube-controller-manager_$(KUBE_VERSION) -LO https://storage.googleapis.com/kubernetes-release/release/v$(KUBE_VERSION)/bin/linux/amd64/kube-controller-manager; \
 	fi
 

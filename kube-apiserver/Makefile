@@ -9,6 +9,7 @@ version:
 
 download:
 	@if [ ! -e kube-apiserver_$(KUBE_VERSION) ]; then \
+		printf "\nDownloading kube-apiserver...\n"; \
 		curl  -o kube-apiserver_$(KUBE_VERSION) -LO https://storage.googleapis.com/kubernetes-release/release/v$(KUBE_VERSION)/bin/linux/amd64/kube-apiserver; \
 	fi
 

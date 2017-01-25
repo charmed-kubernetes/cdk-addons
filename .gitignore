@@ -1,0 +1,13 @@
+*.snap
+**/prime
+**/stage
+**/parts
+**/snapcraft.yaml
+kubectl/kubectl_*
+kubectl/kubectl
+kube-apiserver/kube-apiserver_*
+kube-apiserver/kube-apiserver
+kube-controller-manager/kube-controller-manager_*
+kube-controller-manager/kube-controller-manager
+kube-scheduler/kube-scheduler_*
+kube-scheduler/kube-scheduler

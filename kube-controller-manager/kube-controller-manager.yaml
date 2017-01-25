@@ -1,0 +1,14 @@
+name: kube-controller-manager
+version: 'KUBE_VERSION'
+summary: kube-controller-manager
+description: kube-controller-manager
+grade: devel
+confinement: classic
+
+apps:
+  kube-controller-manager:
+    command: kube-controller-manager
+
+parts:
+  kube-controller-manager:
+    plugin: dump

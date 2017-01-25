@@ -1,0 +1,14 @@
+name: kube-apiserver
+version: 'KUBE_VERSION'
+summary: kube-apiserver
+description: kube-apiserver
+grade: devel
+confinement: classic
+
+apps:
+  kube-apiserver:
+    command: kube-apiserver
+
+parts:
+  kube-apiserver:
+    plugin: dump

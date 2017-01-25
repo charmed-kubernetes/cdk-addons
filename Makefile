@@ -5,7 +5,11 @@ ifndef VERBOSE
 	MAKEFLAGS += --no-print-directory
 endif
 
-default: kubectl kube-apiserver kube-controller-manager kube-scheduler
+targets = kubectl kube-apiserver kube-controller-manager kube-scheduler
+
+.PHONY: $(targets)
+
+default: $(targets)
 
 # There's got to be a way to build the dependencies from a list of targets!
 clean: kubectl-clean kube-apiserver-clean kube-controller-manager-clean kube-scheduler-clean
@@ -71,7 +75,7 @@ kube-controller-manager-uninstall:
 
 # kube-scheduler
 
-kube-scheduler: 
+kube-scheduler:
 	@mkdir -p build
 	@if [ ! -f ./build/kube-scheduler_$(KUBE_VERSION)_amd64.snap ]; then \
 		KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kube-scheduler; \

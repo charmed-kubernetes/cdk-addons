@@ -17,7 +17,7 @@ clean: kubectl-clean kube-apiserver-clean kube-controller-manager-clean kube-sch
 
 # kubectl
 
-kubectl: build
+kubectl:
 	@mkdir -p build
 	@if [ ! -f ./build/kubectl_$(KUBE_VERSION)_amd64.snap ]; then \
 		KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kubectl; \
@@ -35,7 +35,7 @@ kubectl-uninstall:
 
 # kube-apiserver
 
-kube-apiserver: build
+kube-apiserver:
 	@mkdir -p build
 	@if [ ! -f ./build/kube-apiserver_$(KUBE_VERSION)_amd64.snap ]; then \
 		KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kube-apiserver; \
@@ -53,7 +53,7 @@ kube-apiserver-uninstall:
 
 # kube-controller-manager
 
-kube-controller-manager: build
+kube-controller-manager:
 	@mkdir -p build
 	@if [ ! -f ./build/kube-controller-manager_$(KUBE_VERSION)_amd64.snap ]; then \
 		KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kube-controller-manager; \
@@ -71,7 +71,7 @@ kube-controller-manager-uninstall:
 
 # kube-scheduler
 
-kube-scheduler: build
+kube-scheduler: 
 	@mkdir -p build
 	@if [ ! -f ./build/kube-scheduler_$(KUBE_VERSION)_amd64.snap ]; then \
 		KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kube-scheduler; \

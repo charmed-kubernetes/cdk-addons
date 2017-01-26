@@ -13,3 +13,5 @@ kube-scheduler/kube-scheduler_*
 kube-scheduler/kube-scheduler
 kubelet/kubelet_*
 kubelet/kubelet
+kube-proxy/kube-proxy_*
+kube-proxy/kube-proxy

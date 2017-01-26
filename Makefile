@@ -5,14 +5,14 @@ ifndef VERBOSE
 	MAKEFLAGS += --no-print-directory
 endif
 
-targets = kubectl kube-apiserver kube-controller-manager kube-scheduler
+targets = kubectl kube-apiserver kube-controller-manager kube-scheduler kubelet
 
 .PHONY: $(targets)
 
 default: $(targets)
 
 # There's got to be a way to build the dependencies from a list of targets!
-clean: kubectl-clean kube-apiserver-clean kube-controller-manager-clean kube-scheduler-clean
+clean: kubectl-clean kube-apiserver-clean kube-controller-manager-clean kube-scheduler-clean kubelet-clean
 	@rm *.snap 2> /dev/null | true
 	@rm -rf build 2> /dev/null | true
 
@@ -82,3 +82,19 @@ kube-scheduler-install: kube-scheduler
 
 kube-scheduler-uninstall:
 	@sudo snap remove kube-scheduler
+
+# kubelet
+
+kubelet:
+	@mkdir -p build
+	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kubelet
+	@cp kubelet/*.snap ./build
+
+kubelet-clean:
+	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kubelet
+
+kubelet-install: kubelet
+	@sudo snap install ./build/kubelet_$(KUBE_VERSION)_amd64.snap --classic --dangerous
+
+kubelet-uninstall:
+	@sudo snap remove kubelet

@@ -1,3 +1,6 @@
+ifndef KUBE_VERSION
+$(error Aborting, KUBE_VERSION is not set.)
+endif
 
 kube-controller-manager_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kube-controller-manager_$(KUBE_VERSION)
 	@cp kube-controller-manager_$(KUBE_VERSION) kube-controller-manager

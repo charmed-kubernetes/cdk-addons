@@ -1,3 +1,6 @@
+ifndef KUBE_VERSION
+$(error Aborting, KUBE_VERSION is not set.)
+endif
 
 kubelet_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kubelet_$(KUBE_VERSION)
 	@cp kubelet_$(KUBE_VERSION) kubelet

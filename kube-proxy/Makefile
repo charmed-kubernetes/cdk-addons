@@ -1,3 +1,6 @@
+ifndef KUBE_VERSION
+$(error Aborting, KUBE_VERSION is not set.)
+endif
 
 kube-proxy_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kube-proxy_$(KUBE_VERSION)
 	@cp kube-proxy_$(KUBE_VERSION) kube-proxy

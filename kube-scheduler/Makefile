@@ -1,3 +1,6 @@
+ifndef KUBE_VERSION
+$(error Aborting, KUBE_VERSION is not set.)
+endif
 
 kube-scheduler_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kube-scheduler_$(KUBE_VERSION)
 	@cp kube-scheduler_$(KUBE_VERSION) kube-scheduler

@@ -20,6 +20,7 @@ kube-proxy_$(KUBE_VERSION):
 
 clean: snapcraft.yaml
 	@echo Cleaning kube-proxy...
+	@mkdir -p build
 	@snapcraft clean > /dev/null
 	@rm -rf build > /dev/null 2>&1 | true
 	@rm *.snap > /dev/null 2>&1 | true

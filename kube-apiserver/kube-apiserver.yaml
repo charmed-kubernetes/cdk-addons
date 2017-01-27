@@ -12,3 +12,4 @@ apps:
 parts:
   kube-apiserver:
     plugin: dump
+    source: build

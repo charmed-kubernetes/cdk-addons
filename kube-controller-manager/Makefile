@@ -3,7 +3,8 @@ $(error Aborting, KUBE_VERSION is not set.)
 endif
 
 kube-controller-manager_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kube-controller-manager_$(KUBE_VERSION)
-	@cp kube-controller-manager_$(KUBE_VERSION) kube-controller-manager
+	@mkdir -p build
+	@cp kube-controller-manager_$(KUBE_VERSION) build/kube-controller-manager
 	@printf "\nBuilding kube-controller-manager snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 
@@ -19,7 +20,8 @@ kube-controller-manager_$(KUBE_VERSION):
 
 clean: snapcraft.yaml
 	@echo Cleaning kube-controller-manager...
+	@mkdir -p build
 	@snapcraft clean > /dev/null
-	@rm kube-controller-manager > /dev/null 2>&1 | true
+	@rm -rf build > /dev/null 2>&1 | true
 	@rm *.snap > /dev/null 2>&1 | true
 	@rm snapcraft.yaml > /dev/null 2>&1 | true

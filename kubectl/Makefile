@@ -3,7 +3,8 @@ $(error Aborting, KUBE_VERSION is not set.)
 endif
 
 kubectl_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kubectl_$(KUBE_VERSION)
-	@cp kubectl_$(KUBE_VERSION) kubectl
+	@mkdir -p build
+	@cp kubectl_$(KUBE_VERSION) build/kubectl
 	@printf "\nBuilding kubectl snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 
@@ -19,7 +20,8 @@ kubectl_$(KUBE_VERSION):
 
 clean: snapcraft.yaml
 	@echo Cleaning kubectl...
+	@mkdir -p build
 	@snapcraft clean > /dev/null
-	@rm kubectl > /dev/null 2>&1 | true
+	@rm -rf build > /dev/null 2>&1 | true
 	@rm *.snap > /dev/null 2>&1 | true
 	@rm snapcraft.yaml > /dev/null 2>&1 | true

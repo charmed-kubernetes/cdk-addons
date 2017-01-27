@@ -19,3 +19,4 @@ apps:
 parts:
   kube-proxy:
     plugin: dump
+    source: build

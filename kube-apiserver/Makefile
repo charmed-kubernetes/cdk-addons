@@ -3,7 +3,8 @@ $(error Aborting, KUBE_VERSION is not set.)
 endif
 
 kube-apiserver_$(KUBE_VERSION)_amd64.snap: kube-apiserver_$(KUBE_VERSION) snapcraft.yaml
-	@cp kube-apiserver_$(KUBE_VERSION) kube-apiserver
+	@mkdir -p build
+	@cp kube-apiserver_$(KUBE_VERSION) build/kube-apiserver
 	@printf "\nBuilding kube-apiserver snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 
@@ -19,7 +20,8 @@ kube-apiserver_$(KUBE_VERSION):
 
 clean: snapcraft.yaml
 	@echo Cleaning kube-apiserver...
+	@mkdir -p build
 	@snapcraft clean > /dev/null
-	@rm kube-apiserver > /dev/null 2>&1 | true
+	@rm -rf build > /dev/null 2>&1 | true
 	@rm *.snap > /dev/null 2>&1 | true
 	@rm snapcraft.yaml > /dev/null 2>&1 | true

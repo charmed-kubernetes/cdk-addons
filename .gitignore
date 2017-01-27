@@ -3,6 +3,7 @@
 **/stage
 **/parts
 **/snapcraft.yaml
+**/build
 kubectl/kubectl_*
 kubectl/kubectl
 kube-apiserver/kube-apiserver_*

@@ -3,7 +3,8 @@ $(error Aborting, KUBE_VERSION is not set.)
 endif
 
 kubelet_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kubelet_$(KUBE_VERSION)
-	@cp kubelet_$(KUBE_VERSION) kubelet
+	@mkdir -p build
+	@cp kubelet_$(KUBE_VERSION) build/kubelet
 	@printf "\nBuilding kubelet snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 
@@ -19,7 +20,8 @@ kubelet_$(KUBE_VERSION):
 
 clean: snapcraft.yaml
 	@echo Cleaning kubelet...
+	@mkdir -p build
 	@snapcraft clean > /dev/null
-	@rm kubelet > /dev/null 2>&1 | true
+	@rm -rf build > /dev/null 2>&1 | true
 	@rm *.snap > /dev/null 2>&1 | true
 	@rm snapcraft.yaml > /dev/null 2>&1 | true

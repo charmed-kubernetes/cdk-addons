@@ -18,3 +18,4 @@ apps:
 parts:
   kubelet:
     plugin: dump
+    source: build

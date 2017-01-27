@@ -3,7 +3,8 @@ $(error Aborting, KUBE_VERSION is not set.)
 endif
 
 kube-proxy_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kube-proxy_$(KUBE_VERSION)
-	@cp kube-proxy_$(KUBE_VERSION) kube-proxy
+	@mkdir -p build
+	@cp kube-proxy_$(KUBE_VERSION) build/kube-proxy
 	@printf "\nBuilding kube-proxy snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 
@@ -20,6 +21,6 @@ kube-proxy_$(KUBE_VERSION):
 clean: snapcraft.yaml
 	@echo Cleaning kube-proxy...
 	@snapcraft clean > /dev/null
-	@rm kube-proxy > /dev/null 2>&1 | true
+	@rm -rf build > /dev/null 2>&1 | true
 	@rm *.snap > /dev/null 2>&1 | true
 	@rm snapcraft.yaml > /dev/null 2>&1 | true

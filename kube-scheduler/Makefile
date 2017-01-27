@@ -3,7 +3,8 @@ $(error Aborting, KUBE_VERSION is not set.)
 endif
 
 kube-scheduler_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kube-scheduler_$(KUBE_VERSION)
-	@cp kube-scheduler_$(KUBE_VERSION) kube-scheduler
+	@mkdir -p build
+	@cp kube-scheduler_$(KUBE_VERSION) build/kube-scheduler
 	@printf "\nBuilding kube-scheduler snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 
@@ -19,7 +20,8 @@ kube-scheduler_$(KUBE_VERSION):
 
 clean: snapcraft.yaml
 	@echo Cleaning kube-scheduler...
+	@mkdir -p build
 	@snapcraft clean > /dev/null
-	@rm kube-scheduler > /dev/null 2>&1 | true
+	@rm -rf build > /dev/null 2>&1 | true
 	@rm *.snap > /dev/null 2>&1 | true
 	@rm snapcraft.yaml > /dev/null 2>&1 | true

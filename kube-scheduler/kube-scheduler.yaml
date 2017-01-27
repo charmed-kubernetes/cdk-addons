@@ -14,3 +14,4 @@ apps:
 parts:
   kube-scheduler:
     plugin: dump
+    source: build

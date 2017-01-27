@@ -12,3 +12,4 @@ apps:
 parts:
   kube-controller-manager:
     plugin: dump
+    source: build

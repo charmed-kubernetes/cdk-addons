@@ -7,12 +7,12 @@ confinement: strict
 
 apps:
   kube-apiserver:
-    command: kube-apiserver
+    command: run-kube-apiserver
+    daemon: simple
     plugs:
         - home
         - network
         - network-bind
-
 parts:
   kube-apiserver:
     plugin: dump

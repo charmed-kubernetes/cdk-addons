@@ -5,11 +5,15 @@ description: |
   kube-scheduler is a command line interface for running commands against Kubernetes
   clusters.
 grade: devel
-confinement: classic
+confinement: strict
 
 apps:
   kube-scheduler:
     command: kube-scheduler
+    plugs:
+        - network
+        - network-bind
+        - home
 
 parts:
   kube-scheduler:

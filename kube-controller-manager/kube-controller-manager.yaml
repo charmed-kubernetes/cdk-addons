@@ -3,11 +3,15 @@ version: 'KUBE_VERSION'
 summary: kube-controller-manager
 description: kube-controller-manager
 grade: devel
-confinement: classic
+confinement: strict
 
 apps:
   kube-controller-manager:
     command: kube-controller-manager
+    plugs:
+        - network
+        - network-bind
+        - home
 
 parts:
   kube-controller-manager:

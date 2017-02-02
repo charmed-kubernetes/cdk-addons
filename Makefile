@@ -46,7 +46,7 @@ kube-apiserver-clean:
 	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kube-apiserver
 
 kube-apiserver-install: kube-apiserver
-	@sudo snap install ./build/kube-apiserver_$(KUBE_VERSION)_amd64.snap --classic --dangerous
+	@sudo snap install ./build/kube-apiserver_$(KUBE_VERSION)_amd64.snap --dangerous
 
 kube-apiserver-uninstall:
 	@sudo snap remove kube-apiserver
@@ -62,7 +62,7 @@ kube-controller-manager-clean:
 	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kube-controller-manager
 
 kube-controller-manager-install: kube-controller-manager
-	@sudo snap install ./build/kube-controller-manager_$(KUBE_VERSION)_amd64.snap --classic --dangerous
+	@sudo snap install ./build/kube-controller-manager_$(KUBE_VERSION)_amd64.snap --dangerous
 
 kube-controller-manager-uninstall:
 	@sudo snap remove kube-controller-manager
@@ -78,7 +78,7 @@ kube-scheduler-clean:
 	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kube-scheduler
 
 kube-scheduler-install: kube-scheduler
-	@sudo snap install ./build/kube-scheduler_$(KUBE_VERSION)_amd64.snap --classic --dangerous
+	@sudo snap install ./build/kube-scheduler_$(KUBE_VERSION)_amd64.snap --dangerous
 
 kube-scheduler-uninstall:
 	@sudo snap remove kube-scheduler

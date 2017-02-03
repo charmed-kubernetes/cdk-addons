@@ -5,6 +5,7 @@ endif
 kube-controller-manager_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kube-controller-manager_$(KUBE_VERSION)
 	@mkdir -p build
 	@cp kube-controller-manager_$(KUBE_VERSION) build/kube-controller-manager
+	@cp kube-controller-manager-daemon build
 	@printf "\nBuilding kube-controller-manager snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 

@@ -8,13 +8,19 @@ grade: devel
 confinement: strict
 
 apps:
+  daemon:
+    command: kube-scheduler-daemon
+    daemon: simple
+    plugs:
+        - network
+        - network-bind
+        - home
   kube-scheduler:
     command: kube-scheduler
     plugs:
         - network
         - network-bind
         - home
-
 parts:
   kube-scheduler:
     plugin: dump

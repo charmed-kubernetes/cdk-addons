@@ -5,6 +5,7 @@ endif
 kube-scheduler_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kube-scheduler_$(KUBE_VERSION)
 	@mkdir -p build
 	@cp kube-scheduler_$(KUBE_VERSION) build/kube-scheduler
+	@cp kube-scheduler-daemon build
 	@printf "\nBuilding kube-scheduler snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 

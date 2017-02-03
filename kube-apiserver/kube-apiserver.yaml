@@ -6,9 +6,15 @@ grade: devel
 confinement: strict
 
 apps:
-  kube-apiserver:
-    command: run-kube-apiserver
+  daemon:
+    command: kube-apiserver-daemon
     daemon: simple
+    plugs:
+        - home
+        - network
+        - network-bind
+  kube-apiserver:
+    command: kube-apiserver
     plugs:
         - home
         - network

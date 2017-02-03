@@ -5,7 +5,7 @@ endif
 kube-apiserver_$(KUBE_VERSION)_amd64.snap: kube-apiserver_$(KUBE_VERSION) snapcraft.yaml
 	@mkdir -p build
 	@cp kube-apiserver_$(KUBE_VERSION) build/kube-apiserver
-	@cp run-kube-apiserver build
+	@cp kube-apiserver-daemon build
 	@printf "\nBuilding kube-apiserver snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 

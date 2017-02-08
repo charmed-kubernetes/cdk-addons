@@ -110,7 +110,7 @@ kube-proxy-clean:
 	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kube-proxy
 
 kube-proxy-install: kube-proxy
-	@sudo snap install ./build/kube-proxy_$(KUBE_VERSION)_amd64.snap --classic --dangerous
+	@sudo snap install ./build/kube-proxy_$(KUBE_VERSION)_amd64.snap --dangerous
 
 kube-proxy-uninstall:
 	@sudo snap remove kube-proxy

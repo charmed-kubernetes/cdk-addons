@@ -10,11 +10,17 @@ description: |
   an optional addon that provides cluster DNS for these cluster IPs. The user
   must create a service with the apiserver API to configure the proxy.
 grade: devel
-confinement: classic
+confinement: strict
 
 apps:
   kube-proxy:
     command: kube-proxy
+    plugs:
+        - network
+        - network-bind
+        - network-control
+        - home
+        - firewall-control
 
 parts:
   kube-proxy:

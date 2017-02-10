@@ -13,6 +13,9 @@ grade: devel
 confinement: classic
 
 apps:
+  daemon:
+    command: kube-proxy-daemon
+    daemon: simple
   kube-proxy:
     command: kube-proxy
 

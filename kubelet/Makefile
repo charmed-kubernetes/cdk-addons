@@ -5,6 +5,7 @@ endif
 kubelet_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kubelet_$(KUBE_VERSION)
 	@mkdir -p build
 	@cp kubelet_$(KUBE_VERSION) build/kubelet
+	@cp kubelet-daemon build
 	@printf "\nBuilding kubelet snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 

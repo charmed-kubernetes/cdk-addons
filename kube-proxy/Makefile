@@ -5,6 +5,7 @@ endif
 kube-proxy_$(KUBE_VERSION)_amd64.snap: snapcraft.yaml kube-proxy_$(KUBE_VERSION)
 	@mkdir -p build
 	@cp kube-proxy_$(KUBE_VERSION) build/kube-proxy
+	@cp kube-proxy-daemon build
 	@printf "\nBuilding kube-proxy snap version $(KUBE_VERSION)...\n"
 	@snapcraft
 

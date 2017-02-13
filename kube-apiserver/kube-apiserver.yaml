@@ -6,13 +6,19 @@ grade: devel
 confinement: strict
 
 apps:
+  daemon:
+    command: kube-apiserver-daemon
+    daemon: simple
+    plugs:
+        - home
+        - network
+        - network-bind
   kube-apiserver:
     command: kube-apiserver
     plugs:
         - home
         - network
         - network-bind
-
 parts:
   kube-apiserver:
     plugin: dump

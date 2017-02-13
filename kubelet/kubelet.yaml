@@ -12,6 +12,9 @@ grade: devel
 confinement: classic
 
 apps:
+  daemon:
+    command: kubelet-daemon
+    daemon: simple
   kubelet:
     command: kubelet
 

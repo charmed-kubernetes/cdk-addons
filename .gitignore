@@ -4,4 +4,4 @@ kube-controller-manager
 kube-scheduler
 kubelet
 kube-proxy
-kube_bin
+kube_bins

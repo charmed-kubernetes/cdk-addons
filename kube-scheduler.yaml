@@ -9,7 +9,7 @@ confinement: strict
 
 apps:
   daemon:
-    command: kube-scheduler-daemon
+    command: run-with-config-args kube-scheduler
     daemon: simple
     plugs:
         - network
@@ -24,4 +24,4 @@ apps:
 parts:
   kube-scheduler:
     plugin: dump
-    source: build
+    source: dump

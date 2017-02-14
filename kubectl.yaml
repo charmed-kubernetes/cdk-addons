@@ -14,4 +14,4 @@ apps:
 parts:
   kubectl:
     plugin: dump
-    source: build
+    source: dump

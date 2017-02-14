@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eux
+
+app=$1
+
+build_dir=$app
+rm -rf $build_dir
+cp -r shared $build_dir
+
+sed "s/KUBE_VERSION/$KUBE_VERSION/g" $app.yaml > $build_dir/snapcraft.yaml
+
+cp $KUBE_BIN_DIR/$app $build_dir/dump
+
+cd $build_dir
+snapcraft

@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eux
+
+mkdir -p kube_bin/${KUBE_VERSION}
+for bin in kubectl kube-apiserver kube-controller-manager kube-scheduler kubelet kube-proxy; do
+  local_path=kube_bin/${KUBE_VERSION}/$bin
+  wget \
+    https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/amd64/$bin \
+    -O $local_path
+  chmod +x $local_path
+done

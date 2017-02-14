@@ -7,7 +7,7 @@ confinement: strict
 
 apps:
   daemon:
-    command: kube-controller-manager-daemon
+    command: run-with-config-args kube-controller-manager
     daemon: simple
     plugs:
         - network
@@ -22,4 +22,4 @@ apps:
 parts:
   kube-controller-manager:
     plugin: dump
-    source: build
+    source: dump

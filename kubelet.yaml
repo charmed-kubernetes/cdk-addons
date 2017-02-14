@@ -21,4 +21,8 @@ apps:
 parts:
   kubelet:
     plugin: dump
-    source: dump
+    source: .
+    prepare: |
+      cp $KUBE_BINS/kubelet .
+      cp -r $KUBE_SNAP_SHARED/* .
+

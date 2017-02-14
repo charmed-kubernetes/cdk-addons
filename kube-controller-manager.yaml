@@ -22,4 +22,7 @@ apps:
 parts:
   kube-controller-manager:
     plugin: dump
-    source: dump
+    source: .
+    prepare: |
+      cp $KUBE_BINS/kube-controller-manager .
+      cp -r $KUBE_SNAP_SHARED/* .

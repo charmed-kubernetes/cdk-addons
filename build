@@ -1,15 +1,17 @@
 #!/bin/sh
-set -eux
+set -eu
 
 app=$1
 
+echo "Building $app v$KUBE_VERSION from $KUBE_BINS"
+
 build_dir=$app
 rm -rf $build_dir
-cp -r shared $build_dir
+mkdir -p $build_dir
 
 sed "s/KUBE_VERSION/$KUBE_VERSION/g" $app.yaml > $build_dir/snapcraft.yaml
 
-cp $KUBE_BIN_DIR/$app $build_dir/dump
-
+export KUBE_BINS=$(readlink -f $KUBE_BINS)
+export KUBE_SNAP_SHARED=$(readlink -f shared)
 cd $build_dir
 snapcraft

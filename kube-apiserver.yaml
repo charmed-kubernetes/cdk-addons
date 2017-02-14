@@ -22,4 +22,7 @@ apps:
 parts:
   kube-apiserver:
     plugin: dump
-    source: dump
+    source: .
+    prepare: |
+      cp $KUBE_BINS/kube-apiserver .
+      cp -r $KUBE_SNAP_SHARED/* .

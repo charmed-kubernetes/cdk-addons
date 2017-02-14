@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+
+for app in kubectl kube-apiserver kube-controller-manager kube-scheduler kubelet kube-proxy; do
+  ./build $app
+done

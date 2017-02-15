@@ -1,4 +1,23 @@
 #!/bin/sh
 set -eu
 
-snapctl get args > $SNAP_DATA/args
+rm -f $SNAP_DATA/args
+
+$SNAP/$SNAP_NAME -h 2>&1 | grep '\-\-' | perl -pe 's/.*?--(\S+ \S*).*/\1/' | while read line; do
+  if [ $(echo "$line" | wc -w) -eq 2 ]; then
+    key=$(echo "$line" | cut -d ' ' -f 1)
+    value=$(snapctl get -t $key)
+    if [ "$value" != 'null' ]; then
+      echo "--$key $value" >> $SNAP_DATA/args
+    fi
+  else
+    key=$line
+    value=$(snapctl get $key)
+    if [ "$value" = 'true' ]; then
+      echo "--$key" >> $SNAP_DATA/args
+    elif [ -n "$value" ] && [ "$value" != 'false' ]; then
+      >&2 echo "Invalid value for $key: $value, expected true or false"
+      exit 1
+    fi
+  fi
+done

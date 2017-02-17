@@ -24,5 +24,6 @@ parts:
     plugin: dump
     source: .
     prepare: |
-      cp $KUBE_BINS/kube-apiserver .
+      set -eu
+      cp $KUBE_SNAP_BINS/kube-apiserver .
       cp -r $KUBE_SNAP_SHARED/* .

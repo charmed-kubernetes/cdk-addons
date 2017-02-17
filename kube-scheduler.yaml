@@ -26,5 +26,6 @@ parts:
     plugin: dump
     source: .
     prepare: |
-      cp $KUBE_BINS/kube-scheduler .
+      set -eu
+      cp $KUBE_SNAP_BINS/kube-scheduler .
       cp -r $KUBE_SNAP_SHARED/* .

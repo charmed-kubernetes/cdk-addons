@@ -14,4 +14,7 @@ apps:
 parts:
   kubectl:
     plugin: dump
-    source: build
+    source: .
+    prepare: |
+      set -eu
+      cp $KUBE_SNAP_BINS/kubectl .

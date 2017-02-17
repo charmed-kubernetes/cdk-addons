@@ -9,7 +9,7 @@ confinement: strict
 
 apps:
   daemon:
-    command: kube-scheduler-daemon
+    command: run-with-config-args kube-scheduler
     daemon: simple
     plugs:
         - network
@@ -24,4 +24,8 @@ apps:
 parts:
   kube-scheduler:
     plugin: dump
-    source: build
+    source: .
+    prepare: |
+      set -eu
+      cp $KUBE_SNAP_BINS/kube-scheduler .
+      cp -r $KUBE_SNAP_SHARED/* .

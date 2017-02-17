@@ -7,14 +7,14 @@ endif
 
 targets = kubectl kube-apiserver kube-controller-manager kube-scheduler kubelet kube-proxy
 
+build = ./build-scripts/build
+
 .PHONY: $(targets)
 
 default: $(targets)
 
-# There's got to be a way to build the dependencies from a list of targets!
-clean: kubectl-clean kube-apiserver-clean kube-controller-manager-clean kube-scheduler-clean kubelet-clean kube-proxy-clean
-	@rm *.snap 2> /dev/null | true
-	@rm -rf build 2> /dev/null | true
+clean:
+	@rm -rf build
 
 # The following are literally all the same; there's got to be a way to do this
 # with macros or substitutions or somesuch, but I gave up. -RT
@@ -22,15 +22,10 @@ clean: kubectl-clean kube-apiserver-clean kube-controller-manager-clean kube-sch
 # kubectl
 
 kubectl:
-	@mkdir -p build
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kubectl
-	@cp kubectl/*.snap ./build
-
-kubectl-clean:
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kubectl
+	@KUBE_VERSION=${KUBE_VERSION} ${build} kubectl
 
 kubectl-install: kubectl
-	@sudo snap install ./build/kubectl_$(KUBE_VERSION)_amd64.snap --classic --dangerous
+	@sudo snap install build/kubectl_$(KUBE_VERSION)_amd64.snap --classic --dangerous
 
 kubectl-uninstall:
 	@sudo snap remove kubectl
@@ -38,15 +33,10 @@ kubectl-uninstall:
 # kube-apiserver
 
 kube-apiserver:
-	@mkdir -p build
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kube-apiserver
-	@cp kube-apiserver/*.snap ./build
-
-kube-apiserver-clean:
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kube-apiserver
+	@KUBE_VERSION=${KUBE_VERSION} ${build} kube-apiserver
 
 kube-apiserver-install: kube-apiserver
-	@sudo snap install ./build/kube-apiserver_$(KUBE_VERSION)_amd64.snap --dangerous
+	@sudo snap install build/kube-apiserver_$(KUBE_VERSION)_amd64.snap --dangerous
 
 kube-apiserver-uninstall:
 	@sudo snap remove kube-apiserver
@@ -54,15 +44,10 @@ kube-apiserver-uninstall:
 # kube-controller-manager
 
 kube-controller-manager:
-	@mkdir -p build
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kube-controller-manager
-	@cp kube-controller-manager/*.snap ./build
-
-kube-controller-manager-clean:
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kube-controller-manager
+	@KUBE_VERSION=${KUBE_VERSION} ${build} kube-controller-manager
 
 kube-controller-manager-install: kube-controller-manager
-	@sudo snap install ./build/kube-controller-manager_$(KUBE_VERSION)_amd64.snap --dangerous
+	@sudo snap install build/kube-controller-manager_$(KUBE_VERSION)_amd64.snap --dangerous
 
 kube-controller-manager-uninstall:
 	@sudo snap remove kube-controller-manager
@@ -70,15 +55,10 @@ kube-controller-manager-uninstall:
 # kube-scheduler
 
 kube-scheduler:
-	@mkdir -p build
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kube-scheduler
-	@cp kube-scheduler/*.snap ./build
-
-kube-scheduler-clean:
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kube-scheduler
+	@KUBE_VERSION=${KUBE_VERSION} ${build} kube-scheduler
 
 kube-scheduler-install: kube-scheduler
-	@sudo snap install ./build/kube-scheduler_$(KUBE_VERSION)_amd64.snap --dangerous
+	@sudo snap install build/kube-scheduler_$(KUBE_VERSION)_amd64.snap --dangerous
 
 kube-scheduler-uninstall:
 	@sudo snap remove kube-scheduler
@@ -86,15 +66,10 @@ kube-scheduler-uninstall:
 # kubelet
 
 kubelet:
-	@mkdir -p build
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kubelet
-	@cp kubelet/*.snap ./build
-
-kubelet-clean:
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kubelet
+	@KUBE_VERSION=${KUBE_VERSION} ${build} kubelet
 
 kubelet-install: kubelet
-	@sudo snap install ./build/kubelet_$(KUBE_VERSION)_amd64.snap --classic --dangerous
+	@sudo snap install build/kubelet_$(KUBE_VERSION)_amd64.snap --classic --dangerous
 
 kubelet-uninstall:
 	@sudo snap remove kubelet
@@ -102,15 +77,10 @@ kubelet-uninstall:
 # kube-proxy
 
 kube-proxy:
-	@mkdir -p build
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) -C kube-proxy
-	@cp kube-proxy/*.snap ./build
-
-kube-proxy-clean:
-	@KUBE_VERSION=$(KUBE_VERSION) $(MAKE) clean -C kube-proxy
+	@KUBE_VERSION=${KUBE_VERSION} ${build} kube-proxy
 
 kube-proxy-install: kube-proxy
-	@sudo snap install ./build/kube-proxy_$(KUBE_VERSION)_amd64.snap --classic --dangerous
+	@sudo snap install build/kube-proxy_$(KUBE_VERSION)_amd64.snap --classic --dangerous
 
 kube-proxy-uninstall:
 	@sudo snap remove kube-proxy

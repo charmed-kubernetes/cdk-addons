@@ -14,7 +14,7 @@ confinement: classic
 
 apps:
   daemon:
-    command: kube-proxy-daemon
+    command: run-with-config-args kube-proxy
     daemon: simple
   kube-proxy:
     command: kube-proxy
@@ -22,4 +22,8 @@ apps:
 parts:
   kube-proxy:
     plugin: dump
-    source: build
+    source: .
+    prepare: |
+      set -eu
+      cp $KUBE_SNAP_BINS/kube-proxy .
+      cp -r $KUBE_SNAP_SHARED/* .

@@ -13,7 +13,7 @@ confinement: classic
 
 apps:
   daemon:
-    command: kubelet-daemon
+    command: run-with-config-args kubelet
     daemon: simple
   kubelet:
     command: kubelet
@@ -21,4 +21,9 @@ apps:
 parts:
   kubelet:
     plugin: dump
-    source: build
+    source: .
+    prepare: |
+      set -eu
+      cp $KUBE_SNAP_BINS/kubelet .
+      cp -r $KUBE_SNAP_SHARED/* .
+

@@ -28,4 +28,5 @@ parts:
     prepare: |
       set -eu
       cp $KUBE_SNAP_BINS/kube-scheduler .
-      cp -r $KUBE_SNAP_SHARED/* .
+      cp -r $KUBE_SNAP_ROOT/shared/* .
+      $KUBE_SNAP_ROOT/build-scripts/generate-configure-hook kube-scheduler

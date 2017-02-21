@@ -6,7 +6,7 @@ app=$1
 mkdir -p meta/hooks
 
 cat << 'EOF' > meta/hooks/configure
-#!/bin/sh
+#!/bin/bash
 set -eu
 
 rm -f $SNAP_DATA/args

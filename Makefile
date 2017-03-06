@@ -11,7 +11,8 @@ build = ./build-scripts/build
 
 .PHONY: $(targets)
 
-default: $(targets)
+default:
+	@KUBE_VERSION=${KUBE_VERSION} ${build} $(targets)
 
 clean:
 	@rm -rf build

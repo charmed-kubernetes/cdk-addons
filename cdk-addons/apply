@@ -8,24 +8,9 @@ from jinja2 import Template
 template_dir = os.path.join(os.environ["SNAP"], "templates")
 addon_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons")
 
-def kubectl(*args):
-    cmd = [os.path.join(os.environ["SNAP"], "kubectl")]
-    kubeconfig = get_snap_config("kubeconfig")
-    if kubeconfig:
-        cmd += ["--kubeconfig", kubeconfig]
-    cmd += list(args)
-    return subprocess.check_output(cmd)
-
-def get_node_count():
-    '''Return the number of Kubernetes nodes in the cluster'''
-    output = kubectl("get", "nodes", "-o", "name")
-    node_count = len(output.splitlines())
-    return node_count
-
-def get_snap_config(name):
-    path = os.path.join(os.environ["SNAP_DATA"], "config", name)
-    with open(path) as f:
-        return f.read().rstrip()
+def main():
+    render_templates()
+    deploy_addons()
 
 def render_templates():
     shutil.rmtree(addon_dir, ignore_errors=True)
@@ -54,9 +39,30 @@ def deploy_addons():
         "--prune=true"
     )
 
-def main():
-    render_templates()
-    deploy_addons()
+def kubectl(*args):
+    cmd = [os.path.join(os.environ["SNAP"], "kubectl")]
+    kubeconfig = get_snap_config("kubeconfig", required=False)
+    if kubeconfig:
+        cmd += ["--kubeconfig", kubeconfig]
+    cmd += list(args)
+    return subprocess.check_output(cmd)
+
+def get_node_count():
+    '''Return the number of Kubernetes nodes in the cluster'''
+    output = kubectl("get", "nodes", "-o", "name")
+    node_count = len(output.splitlines())
+    return node_count
+
+def get_snap_config(name, required=True):
+    path = os.path.join(os.environ["SNAP_DATA"], "config", name)
+    with open(path) as f:
+        value = f.read().rstrip()
+    if not value and required:
+        raise MissingSnapConfig("%s is required" % name)
+    return value
+
+class MissingSnapConfig(Exception):
+    pass
 
 if __name__ == "__main__":
     main()

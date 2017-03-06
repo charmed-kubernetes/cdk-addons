@@ -6,8 +6,8 @@ description: |
 grade: devel
 confinement: strict
 apps:
-  refresh:
-    command: refresh
+  apply:
+    command: apply
     plugs:
     - home
     - network
@@ -18,6 +18,6 @@ parts:
     prepare: |
       set -eu
       $KUBE_SNAP_ROOT/cdk-addons/add-addons
-      $KUBE_SNAP_ROOT/build-scripts/copy-kube-bin kubectl .
-      cp $KUBE_SNAP_ROOT/cdk-addons/refresh .
+      cp $KUBE_SNAP_BINS/kubectl .
+      cp $KUBE_SNAP_ROOT/cdk-addons/apply .
       cp -r $KUBE_SNAP_ROOT/cdk-addons/meta .

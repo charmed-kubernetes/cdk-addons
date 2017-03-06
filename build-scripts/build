@@ -2,20 +2,8 @@
 set -eu
 
 app=$1
-set +u; KUBE_SNAP_BINS="$KUBE_SNAP_BINS"; set -u
 
-if [ -z "$KUBE_SNAP_BINS" ]; then
-  echo "KUBE_SNAP_BINS is not set, downloading $app from upstream"
-  export KUBE_SNAP_BINS=build/kube_bins/$KUBE_VERSION
-  mkdir -p $KUBE_SNAP_BINS
-  cd $KUBE_SNAP_BINS
-  wget -N \
-    https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/amd64/$app
-  chmod +x $app
-  cd ../../..
-fi
-
-echo "Building $app v$KUBE_VERSION from $KUBE_SNAP_BINS"
+echo "Building $app v$KUBE_VERSION"
 
 build_dir=build/$app
 rm -rf $build_dir
@@ -23,7 +11,6 @@ mkdir -p $build_dir
 
 sed "s/KUBE_VERSION/$KUBE_VERSION/g" $app.yaml > $build_dir/snapcraft.yaml
 
-export KUBE_SNAP_BINS=$(readlink -f $KUBE_SNAP_BINS)
 export KUBE_SNAP_ROOT=$(readlink -f .)
 cd $build_dir
 snapcraft

@@ -17,4 +17,4 @@ parts:
     source: .
     prepare: |
       set -eu
-      cp $KUBE_SNAP_BINS/kubectl .
+      $KUBE_SNAP_ROOT/build-scripts/copy-kube-bin kubectl .

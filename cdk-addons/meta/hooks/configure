@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+rm -rf "$SNAP_DATA/config"
+mkdir "$SNAP_DATA/config"
+
+for key in kubeconfig dns-ip dns-domain; do
+    snapctl get "$key" > "$SNAP_DATA/config/$key"
+done

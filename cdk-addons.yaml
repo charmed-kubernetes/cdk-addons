@@ -1,0 +1,23 @@
+name: cdk-addons
+version: 'KUBE_VERSION'
+summary: Addons for the Canonical Distribution of Kubernetes
+description: |
+  TODO
+grade: devel
+confinement: strict
+apps:
+  refresh:
+    command: refresh
+    plugs:
+    - home
+    - network
+parts:
+  cdk-addons:
+    plugin: dump
+    source: .
+    prepare: |
+      set -eu
+      $KUBE_SNAP_ROOT/cdk-addons/add-addons
+      $KUBE_SNAP_ROOT/build-scripts/copy-kube-bin kubectl .
+      cp $KUBE_SNAP_ROOT/cdk-addons/refresh .
+      cp -r $KUBE_SNAP_ROOT/cdk-addons/meta .

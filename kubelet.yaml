@@ -24,7 +24,7 @@ parts:
     source: .
     prepare: |
       set -eu
-      cp $KUBE_SNAP_BINS/kubelet .
+      $KUBE_SNAP_ROOT/build-scripts/copy-kube-bin kubelet .
       cp -r $KUBE_SNAP_ROOT/shared/* .
       $KUBE_SNAP_ROOT/build-scripts/generate-configure-hook kubelet
 

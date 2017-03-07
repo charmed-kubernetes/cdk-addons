@@ -66,7 +66,11 @@ def add_addon(repo, source, dest):
     if os.path.isdir(dest):
         dest = os.path.join(dest, os.path.basename(source))
     log.debug("Copying: %s -> %s" % (source, dest))
-    shutil.copy(source, dest)
+    with open(source, "r") as f:
+        content = f.read()
+    content = content.replace("amd64", "{{ arch }}")
+    with open(dest, "w") as f:
+        f.write(content)
 
 
 def update_addons(dest):

@@ -16,6 +16,7 @@ def render_templates():
     shutil.rmtree(addon_dir, ignore_errors=True)
     os.mkdir(addon_dir)
     context = {
+        "arch": get_snap_config("arch"),
         "pillar": {
             "dns_server": get_snap_config("dns-ip"),
             "dns_domain": get_snap_config("dns-domain"),

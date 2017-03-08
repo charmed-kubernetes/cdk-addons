@@ -11,23 +11,13 @@ from contextlib import contextmanager
 
 
 description = """
-Update addon manifests for the charm.
+Get addon templates for the snap.
 
-This will clone the kubernetes repo and place the addons in
-<charm>/templates/addons.
-
-Can be run with no arguments and from any folder.
+This will clone the kubernetes repo and place the addons in ./templates
 """
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 log = logging.getLogger(__name__)
-
-
-def clean_addon_dir(addon_dir):
-    """ Remove and recreate the addons folder """
-    log.debug("Cleaning " + addon_dir)
-    shutil.rmtree(addon_dir, ignore_errors=True)
-    os.makedirs(addon_dir)
 
 
 def run_with_logging(command):
@@ -58,10 +48,10 @@ def kubernetes_repo():
 
 
 def add_addon(repo, source, dest):
-    """ Add an addon manifest from the given repo and source.
+    """ Add an addon template from the given repo and source.
 
-    Any occurrences of 'amd64' are replaced with '{{ arch }}' so the charm can
-    fill it in during deployment. """
+    Any occurrences of 'amd64' are replaced with '{{ arch }}' so the snap can
+    fill it in from config. """
     source = os.path.join(repo, "cluster/addons", source)
     if os.path.isdir(dest):
         dest = os.path.join(dest, os.path.basename(source))
@@ -73,12 +63,13 @@ def add_addon(repo, source, dest):
         f.write(content)
 
 
-def update_addons(dest):
-    """ Update addons. This will clean the addons folder and add new manifests
-    from upstream. """
+def get_addon_templates():
+    """ Get addon templates. This will clone the kubernetes repo from upstream
+    and copy addons to ./templates """
+    dest = os.path.abspath("templates")
+    os.mkdir(dest)
     with kubernetes_repo() as repo:
-        log.info("Copying addons to charm")
-        clean_addon_dir(dest)
+        log.info("Copying addons to " + dest)
         add_addon(repo, "dashboard/dashboard-controller.yaml", dest)
         add_addon(repo, "dashboard/dashboard-service.yaml", dest)
         try:
@@ -108,9 +99,9 @@ def parse_args():
 
 
 def main():
-    """ Update addons into the layer's templates/addons folder """
+    """ Parse args and get the addon templates """
     parse_args()
-    update_addons("templates")
+    get_addon_templates()
 
 
 if __name__ == "__main__":

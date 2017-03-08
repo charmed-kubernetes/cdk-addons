@@ -2,7 +2,7 @@ name: cdk-addons
 version: 'KUBE_VERSION'
 summary: Addons for the Canonical Distribution of Kubernetes
 description: |
-  TODO
+  Addons for the Canonical Distribution of Kubernetes
 grade: devel
 confinement: strict
 apps:
@@ -17,7 +17,7 @@ parts:
     source: .
     prepare: |
       set -eu
-      $KUBE_SNAP_ROOT/cdk-addons/add-addons
+      $KUBE_SNAP_ROOT/cdk-addons/get-addon-templates
       cp $KUBE_SNAP_BINS/kubectl .
       cp $KUBE_SNAP_ROOT/cdk-addons/apply .
       cp -r $KUBE_SNAP_ROOT/cdk-addons/meta .

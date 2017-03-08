@@ -5,13 +5,14 @@ ifndef VERBOSE
 	MAKEFLAGS += --no-print-directory
 endif
 
-targets = kubectl kube-apiserver kube-controller-manager kube-scheduler kubelet kube-proxy
+targets = kubectl kube-apiserver kube-controller-manager kube-scheduler kubelet kube-proxy cdk-addons
 
 build = ./build-scripts/build
 
 .PHONY: $(targets)
 
-default: $(targets)
+default:
+	@KUBE_VERSION=${KUBE_VERSION} ${build} $(targets)
 
 clean:
 	@rm -rf build
@@ -84,3 +85,14 @@ kube-proxy-install: kube-proxy
 
 kube-proxy-uninstall:
 	@sudo snap remove kube-proxy
+
+# cdk-addons
+
+cdk-addons:
+	@KUBE_VERSION=${KUBE_VERSION} ${build} cdk-addons
+
+cdk-addons-install: cdk-addons
+	@sudo snap install build/cdk-addons_$(KUBE_VERSION)_amd64.snap --classic --dangerous
+
+cdk-addons-uninstall:
+	@sudo snap remove cdk-addons

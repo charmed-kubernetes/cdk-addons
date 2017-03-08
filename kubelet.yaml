@@ -25,6 +25,6 @@ parts:
     prepare: |
       set -eu
       cp $KUBE_SNAP_BINS/kubelet .
-      cp -r $KUBE_SNAP_ROOT/shared/* .
-      $KUBE_SNAP_ROOT/build-scripts/generate-configure-hook kubelet
+      cp $KUBE_SNAP_ROOT/shared/run-with-config-args .
+      $KUBE_SNAP_ROOT/shared/generate-configure-hook kubelet
 

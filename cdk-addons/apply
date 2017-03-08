@@ -10,7 +10,7 @@ addon_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons")
 
 def main():
     render_templates()
-    deploy_addons()
+    apply_addons()
 
 def render_templates():
     shutil.rmtree(addon_dir, ignore_errors=True)
@@ -23,15 +23,26 @@ def render_templates():
             "num_nodes": get_node_count()
         }
     }
-    for file in os.listdir(template_dir):
-        source = os.path.join(template_dir, file)
-        dest = os.path.join(addon_dir, file)
-        with open(source) as f:
-            template = Template(f.read())
-        with open(dest, "w") as f:
-            f.write(template.render(context))
+    render_template("kubedns-controller.yaml", context)
+    render_template("kubedns-svc.yaml", context)
+    if get_snap_config("enable-dashboard") == "true":
+        render_template("dashboard-controller.yaml", context)
+        render_template("dashboard-service.yaml", context)
+        render_template("influxdb-grafana-controller.yaml", context)
+        render_template("influxdb-service.yaml", context)
+        render_template("grafana-service.yaml", context)
+        render_template("heapster-controller.yaml", context)
+        render_template("heapster-service.yaml", context)
 
-def deploy_addons():
+def render_template(file, context):
+    source = os.path.join(template_dir, file)
+    dest = os.path.join(addon_dir, file)
+    with open(source) as f:
+        template = Template(f.read())
+    with open(dest, "w") as f:
+        f.write(template.render(context))
+
+def apply_addons():
     kubectl("apply",
         "-f", addon_dir,
         "--recursive",

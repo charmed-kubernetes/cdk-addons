@@ -48,7 +48,8 @@ def apply_addons():
         "--recursive",
         "--namespace=kube-system",
         "-l", "kubernetes.io/cluster-service=true",
-        "--prune=true"
+        "--prune=true",
+        "--force"
     )
 
 def kubectl(*args):

@@ -47,12 +47,14 @@ def kubernetes_repo():
         shutil.rmtree(path)
 
 
-def add_addon(repo, source, dest):
+def add_addon(repo, source, dest, required=True):
     """ Add an addon template from the given repo and source.
 
     Any occurrences of 'amd64' are replaced with '{{ arch }}' so the snap can
     fill it in from config. """
     source = os.path.join(repo, "cluster/addons", source)
+    if not os.path.exists(source) and not required:
+        return
     if os.path.isdir(dest):
         dest = os.path.join(dest, os.path.basename(source))
     log.debug("Copying: %s -> %s" % (source, dest))
@@ -77,6 +79,7 @@ def get_addon_templates():
                       dest + "/kubedns-controller.yaml")
             add_addon(repo, "dns/kubedns-svc.yaml.in",
                       dest + "/kubedns-svc.yaml")
+            add_addon(repo, "dns/kubedns-sa.yaml", dest, required=False)
         except IOError as e:
             # fall back to the older filenames
             log.debug(e)
@@ -84,6 +87,7 @@ def get_addon_templates():
                       dest + "/kubedns-controller.yaml")
             add_addon(repo, "dns/skydns-svc.yaml.in",
                       dest + "/kubedns-svc.yaml")
+
         influxdb = "cluster-monitoring/influxdb"
         add_addon(repo, influxdb + "/grafana-service.yaml", dest)
         add_addon(repo, influxdb + "/heapster-controller.yaml", dest)

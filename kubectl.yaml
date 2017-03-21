@@ -4,7 +4,7 @@ summary: kubectl controls the Kubernetes cluster manager.
 description: |
   kubectl is a command line interface for running commands against Kubernetes
   clusters.
-grade: devel
+grade: stable
 confinement: classic
 
 apps:

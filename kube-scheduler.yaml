@@ -4,7 +4,7 @@ summary: kube-scheduler controls the Kubernetes cluster manager.
 description: |
   kube-scheduler is a command line interface for running commands against Kubernetes
   clusters.
-grade: devel
+grade: stable
 confinement: strict
 
 apps:

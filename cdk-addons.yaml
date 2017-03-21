@@ -3,7 +3,7 @@ version: 'KUBE_VERSION'
 summary: Addons for the Canonical Distribution of Kubernetes
 description: |
   Addons for the Canonical Distribution of Kubernetes
-grade: devel
+grade: stable
 confinement: strict
 apps:
   apply:

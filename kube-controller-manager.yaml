@@ -2,7 +2,7 @@ name: kube-controller-manager
 version: 'KUBE_VERSION'
 summary: kube-controller-manager
 description: kube-controller-manager
-grade: devel
+grade: stable
 confinement: strict
 
 apps:

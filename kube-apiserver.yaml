@@ -2,7 +2,7 @@ name: kube-apiserver
 version: 'KUBE_VERSION'
 summary: kube-apiserver
 description: kube-apiserver
-grade: devel
+grade: stable
 confinement: strict
 
 apps:

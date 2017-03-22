@@ -74,12 +74,13 @@ def get_addon_templates():
         log.info("Copying addons to " + dest)
         add_addon(repo, "dashboard/dashboard-controller.yaml", dest)
         add_addon(repo, "dashboard/dashboard-service.yaml", dest)
+        add_addon(repo, "dns/kubedns-sa.yaml", dest, required=False)
+        add_addon(repo, "dns/kubedns-cm.yaml", dest, required=False)
         try:
             add_addon(repo, "dns/kubedns-controller.yaml.in",
                       dest + "/kubedns-controller.yaml")
             add_addon(repo, "dns/kubedns-svc.yaml.in",
                       dest + "/kubedns-svc.yaml")
-            add_addon(repo, "dns/kubedns-sa.yaml", dest, required=False)
         except IOError as e:
             # fall back to the older filenames
             log.debug(e)

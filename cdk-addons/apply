@@ -23,9 +23,10 @@ def render_templates():
             "num_nodes": get_node_count()
         }
     }
+    render_template("kubedns-sa.yaml", context, required=False)
+    render_template("kubedns-cm.yaml", context, required=False)
     render_template("kubedns-controller.yaml", context)
     render_template("kubedns-svc.yaml", context)
-    render_template("kubedns-sa.yaml", context, required=False)
     if get_snap_config("enable-dashboard") == "true":
         render_template("dashboard-controller.yaml", context)
         render_template("dashboard-service.yaml", context)

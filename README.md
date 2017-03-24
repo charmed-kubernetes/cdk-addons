@@ -28,3 +28,15 @@ $ make KUBE_VERSION=v1.6.1
 ```
 
 Make sure to include the `v` prefix when specifying `KUBE_VERSION`.
+
+To build inside a docker container, use:
+
+```sh
+$ make docker
+```
+
+and similarly:
+
+```sh
+$ make KUBE_VERSION=v1.6.1 docker
+```

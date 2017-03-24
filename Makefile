@@ -4,10 +4,8 @@ KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 
 BUILD=build
 
-default:
-	rm -rf ${BUILD}
+default: clean
 	cp -r cdk-addons ${BUILD}
-	rm -rf templates
 	KUBE_VERSION=${KUBE_VERSION} ./get-addon-templates
 	mv templates ${BUILD}
 	wget -O ${BUILD}/kubectl\

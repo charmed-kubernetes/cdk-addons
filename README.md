@@ -4,6 +4,20 @@ To build the cdk-addons snap, run `make` here and check for the results in the `
 
 ```sh
 $ make
+
+$ tree -L 1 build
+build
+├── apply
+├── cdk-addons_1.5.5_amd64.snap
+├── kubectl
+├── meta
+├── parts
+├── prime
+├── snapcraft.yaml
+├── stage
+└── templates
+
+5 directories, 4 files
 ```
 
 By default, the latest stable version of Kubernetes is queried. To override this,

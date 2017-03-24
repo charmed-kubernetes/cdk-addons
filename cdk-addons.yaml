@@ -15,9 +15,3 @@ parts:
   cdk-addons:
     plugin: dump
     source: .
-    prepare: |
-      set -eu
-      $KUBE_SNAP_ROOT/cdk-addons/get-addon-templates
-      cp $KUBE_SNAP_BINS/kubectl .
-      cp $KUBE_SNAP_ROOT/cdk-addons/apply .
-      cp -r $KUBE_SNAP_ROOT/cdk-addons/meta .

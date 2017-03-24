@@ -36,7 +36,7 @@ def run_with_logging(command):
 def kubernetes_repo():
     """ Yield a kubernetes repo to copy addons from. """
     repo = "https://github.com/kubernetes/kubernetes.git"
-    branch = "v%s" % os.environ["KUBE_VERSION"]
+    branch = os.environ["KUBE_VERSION"]
     log.info("Cloning %s with branch %s" % (repo, branch))
     path = tempfile.mkdtemp(prefix="kubernetes")
     try:

@@ -15,7 +15,7 @@ default: clean
 
 docker: clean
 	docker build -t cdk-addons-builder .
-	docker run -it -v ${PWD}:/root/snap -w /root/snap -e SNAPCRAFT_SETUP_CORE=1 cdk-addons-builder make KUBE_VERSION=${KUBE_VERSION}
+	docker run --rm -v ${PWD}:/root/snap -w /root/snap -e SNAPCRAFT_SETUP_CORE=1 cdk-addons-builder make KUBE_VERSION=${KUBE_VERSION}
 
 
 clean:

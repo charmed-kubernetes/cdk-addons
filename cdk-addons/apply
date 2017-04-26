@@ -47,14 +47,22 @@ def render_template(file, context, required=True):
         f.write(template.render(context))
 
 def apply_addons():
-    kubectl("apply",
-        "-f", addon_dir,
-        "--recursive",
-        "--namespace=kube-system",
-        "-l", "kubernetes.io/cluster-service=true",
-        "--prune=true",
-        "--force"
-    )
+    # Apply dns service first and then recursively the rest.
+    dns_svc = os.path.join(addon_dir, "kubedns-svc.yaml")
+    args = ["apply",
+            "-f", dns_svc,
+            "--namespace=kube-system",
+            "-l", "kubernetes.io/cluster-service=true",
+            "--force"]
+    kubectl(*args)
+    args = ["apply",
+            "-f", addon_dir,
+            "--recursive",
+            "--namespace=kube-system",
+            "-l", "kubernetes.io/cluster-service=true",
+            "--prune=true",
+            "--force"]
+    kubectl(*args)
 
 def kubectl(*args):
     cmd = [os.path.join(os.environ["SNAP"], "kubectl")]

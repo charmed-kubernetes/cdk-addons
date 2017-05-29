@@ -67,7 +67,8 @@ def add_addon(repo, source, dest, required=True):
 
 def get_addon_templates():
     """ Get addon templates. This will clone the kubernetes repo from upstream
-    and copy addons to ./templates """
+    and copy addons to ./templates . It will also copy the coredns template
+    to templates"""
     dest = os.path.abspath("templates")
     os.mkdir(dest)
     with kubernetes_repo() as repo:
@@ -95,6 +96,9 @@ def get_addon_templates():
         add_addon(repo, influxdb + "/heapster-service.yaml", dest)
         add_addon(repo, influxdb + "/influxdb-grafana-controller.yaml", dest)
         add_addon(repo, influxdb + "/influxdb-service.yaml", dest)
+    # copy templates for CoreDNS
+    shutil.copyfile('coredns/coredns-rbac-cm.yaml', 'templates/coredns-rbac-cm.yaml')
+    shutil.copyfile('coredns/coredns-rbac.yaml', 'templates/coredns-rbac.yaml')
 
 
 def parse_args():

@@ -61,6 +61,8 @@ def add_addon(repo, source, dest, required=True):
     with open(source, "r") as f:
         content = f.read()
     content = content.replace("amd64", "{{ arch }}")
+    content = content.replace("- --server=/ip6.arpa/127.0.0.1#10053",
+                              "- --server=/ip6.arpa/127.0.0.1#10053\n        {{ pillar['external_dns_server'] }}")
     with open(dest, "w") as f:
         f.write(content)
 

@@ -16,17 +16,25 @@ def main(skip_dns=False):
 def render_templates():
     shutil.rmtree(addon_dir, ignore_errors=True)
     os.mkdir(addon_dir)
+    external_dns = ""
+    try:
+        external_dns = "- --server={}".format(get_snap_config("external-dns-server"))
+    except MissingSnapConfig:
+        pass
+
     context = {
         "arch": get_snap_config("arch"),
         "pillar": {
             "dns_server": get_snap_config("dns-ip"),
             "dns_domain": get_snap_config("dns-domain"),
-            "num_nodes": get_node_count()
+            "num_nodes": get_node_count(),
+            "external_dns_server": external_dns
         },
         "coredns": {
             "cluster_domain": get_snap_config("dns-domain"),
             "service_cidr":  get_snap_config("service-cidr"),
             "cluster_dns_ip": get_snap_config("dns-ip"),
+            "port": get_snap_config("coredns-port"),
         },
     }
     render_template("kubedns-sa.yaml", context, required=False)

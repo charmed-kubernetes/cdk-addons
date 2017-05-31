@@ -88,12 +88,15 @@ spec:
   selector:
     k8s-app: coredns
   clusterIP: {{ coredns['cluster_dns_ip'] }}
+  type: NodePort
   ports:
   - name: dns
     port: 53
+    nodePort: {{ coredns['port'] }}
     protocol: UDP
   - name: dns-tcp
     port: 53
+    nodePort: {{ coredns['port'] }}
     protocol: TCP
   - name: metrics
     port: 9153

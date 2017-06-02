@@ -17,8 +17,10 @@ def render_templates():
     shutil.rmtree(addon_dir, ignore_errors=True)
     os.mkdir(addon_dir)
     external_dns = ""
+    federation = ""
     try:
         external_dns = "- --server={}".format(get_snap_config("external-dns-server"))
+        federation = "data:\n  federations: {}".format(get_snap_config("federation"))
     except MissingSnapConfig:
         pass
 
@@ -28,7 +30,8 @@ def render_templates():
             "dns_server": get_snap_config("dns-ip"),
             "dns_domain": get_snap_config("dns-domain"),
             "num_nodes": get_node_count(),
-            "external_dns_server": external_dns
+            "external_dns_server": external_dns,
+            "federation": federation
         },
         "coredns": {
             "cluster_domain": get_snap_config("dns-domain"),

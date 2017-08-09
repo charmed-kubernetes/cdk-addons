@@ -1,4 +1,5 @@
 KUBE_ARCH=amd64
+KUBE_DASHBOARD_VERSION=v1.6.3
 KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)
@@ -6,7 +7,7 @@ BUILD=build
 
 default: clean
 	cp -r cdk-addons ${BUILD}
-	KUBE_VERSION=${KUBE_VERSION} ./get-addon-templates
+	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} ./get-addon-templates
 	mv templates ${BUILD}
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl
 	chmod +x ${BUILD}/kubectl

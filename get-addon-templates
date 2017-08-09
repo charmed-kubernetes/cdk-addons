@@ -40,19 +40,35 @@ def kubernetes_repo():
     log.info("Cloning %s with branch %s" % (repo, branch))
     path = tempfile.mkdtemp(prefix="kubernetes")
     try:
-        cmd = ["git", "clone", repo, path, "-b", branch, "--depth", "1"]
+        cmd = ["git", "clone", repo, path, "-b", branch, "--depth", "1",
+               "--single-branch"]
+        run_with_logging(cmd)
+        yield path
+    finally:
+        shutil.rmtree(path)
+
+@contextmanager
+def kubernetes_dashboard_repo():
+    """ Yield a kubernetes dashboard repo to copy yamls from. """
+    repo = "https://github.com/kubernetes/dashboard.git"
+    tag = os.environ["KUBE_DASHBOARD_VERSION"]
+    log.info("Cloning %s and moving to %s" % (repo, tag))
+    path = tempfile.mkdtemp(prefix="dashboard")
+    try:
+        cmd = ["git", "clone", repo, path, "-b", tag, "--depth", "1",
+               "--single-branch"]
         run_with_logging(cmd)
         yield path
     finally:
         shutil.rmtree(path)
 
 
-def add_addon(repo, source, dest, required=True):
+def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     """ Add an addon template from the given repo and source.
 
     Any occurrences of 'amd64' are replaced with '{{ arch }}' so the snap can
     fill it in from config. """
-    source = os.path.join(repo, "cluster/addons", source)
+    source = os.path.join(repo, base, source)
     if not os.path.exists(source) and not required:
         return
     if os.path.isdir(dest):
@@ -72,8 +88,6 @@ def get_addon_templates():
     os.mkdir(dest)
     with kubernetes_repo() as repo:
         log.info("Copying addons to " + dest)
-        add_addon(repo, "dashboard/dashboard-controller.yaml", dest)
-        add_addon(repo, "dashboard/dashboard-service.yaml", dest)
         add_addon(repo, "dns/kubedns-sa.yaml", dest, required=False)
         add_addon(repo, "dns/kubedns-cm.yaml", dest, required=False)
         try:
@@ -95,6 +109,14 @@ def get_addon_templates():
         add_addon(repo, influxdb + "/heapster-service.yaml", dest)
         add_addon(repo, influxdb + "/influxdb-grafana-controller.yaml", dest)
         add_addon(repo, influxdb + "/influxdb-service.yaml", dest)
+
+        # Heapster RBAC
+        add_addon(repo, "cluster-monitoring/heapster-rbac.yaml", dest)
+
+    with kubernetes_dashboard_repo() as repo:
+        log.info("Copying dashboard to " + dest)
+        add_addon(repo, "src/deploy/kubernetes-dashboard.yaml",
+                  dest, base='.')
 
 
 def parse_args():

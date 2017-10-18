@@ -28,11 +28,11 @@ def render_templates():
     render_template("kubedns-controller.yaml", context)
     render_template("kubedns-svc.yaml", context)
     if get_snap_config("enable-dashboard") == "true":
-        render_template("dashboard-controller.yaml", context)
-        render_template("dashboard-service.yaml", context)
+        render_template("kubernetes-dashboard.yaml", context)
         render_template("influxdb-grafana-controller.yaml", context)
         render_template("influxdb-service.yaml", context)
         render_template("grafana-service.yaml", context)
+        render_template("heapster-rbac.yaml", context)
         render_template("heapster-controller.yaml", context)
         render_template("heapster-service.yaml", context)
 
@@ -63,6 +63,14 @@ def apply_addons():
             "--prune=true",
             "--force"]
     kubectl(*args)
+    args = ["apply",
+            "-f", addon_dir,
+            "--recursive",
+            "--namespace=kube-system",
+            "-l", "k8s-app=kubernetes-dashboard",
+            "--force"]
+    kubectl(*args)
+
 
 def kubectl(*args):
     cmd = [os.path.join(os.environ["SNAP"], "kubectl")]

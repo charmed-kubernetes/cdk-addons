@@ -3,6 +3,7 @@
 import os
 import shutil
 import subprocess
+import yaml
 from jinja2 import Template
 
 template_dir = os.path.join(os.environ["SNAP"], "templates")
@@ -43,8 +44,16 @@ def render_template(file, context, required=True):
         return
     with open(source) as f:
         template = Template(f.read())
+    content = template.render(context)
+
+    # apply cdk-addons=true label
+    data = [yaml.load(part) for part in content.split('\n---') if part.strip()]
+    for part in data:
+        part["metadata"]["labels"]["cdk-addons"] = "true"
+    content = '\n---\n'.join(yaml.dump(part) for part in data)
+
     with open(dest, "w") as f:
-        f.write(template.render(context))
+        f.write(content)
 
 def apply_addons():
     # Apply dns service first and then recursively the rest.
@@ -52,22 +61,15 @@ def apply_addons():
     args = ["apply",
             "-f", dns_svc,
             "--namespace=kube-system",
-            "-l", "kubernetes.io/cluster-service=true",
+            "-l", "cdk-addons=true",
             "--force"]
     kubectl(*args)
     args = ["apply",
             "-f", addon_dir,
             "--recursive",
             "--namespace=kube-system",
-            "-l", "kubernetes.io/cluster-service=true",
+            "-l", "cdk-addons=true",
             "--prune=true",
-            "--force"]
-    kubectl(*args)
-    args = ["apply",
-            "-f", addon_dir,
-            "--recursive",
-            "--namespace=kube-system",
-            "-l", "k8s-app=kubernetes-dashboard",
             "--force"]
     kubectl(*args)
 

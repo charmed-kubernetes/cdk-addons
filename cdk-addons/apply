@@ -47,10 +47,10 @@ def render_template(file, context, required=True):
     content = template.render(context)
 
     # apply cdk-addons=true label
-    data = [yaml.load(part) for part in content.split('\n---') if part.strip()]
+    data = [part for part in yaml.load_all(content) if part]
     for part in data:
         part["metadata"]["labels"]["cdk-addons"] = "true"
-    content = '\n---\n'.join(yaml.dump(part) for part in data)
+    content = yaml.dump_all(data)
 
     with open(dest, "w") as f:
         f.write(content)

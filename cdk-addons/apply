@@ -50,6 +50,10 @@ def render_template(file, context, required=True):
     data = [part for part in yaml.load_all(content) if part]
     for part in data:
         part["metadata"]["labels"]["cdk-addons"] = "true"
+        # Adding kubernetes.io/cluster-service=true label for now. We should
+        # probably remove this later and stop using it after the
+        # cdk-addons=true label has been live for a couple releases.
+        part["metadata"]["labels"]["kubernetes.io/cluster-service"] = "true"
     content = yaml.dump_all(data)
 
     with open(dest, "w") as f:
@@ -61,14 +65,14 @@ def apply_addons():
     args = ["apply",
             "-f", dns_svc,
             "--namespace=kube-system",
-            "-l", "cdk-addons=true",
+            "-l", "kubernetes.io/cluster-service=true",
             "--force"]
     kubectl(*args)
     args = ["apply",
             "-f", addon_dir,
             "--recursive",
             "--namespace=kube-system",
-            "-l", "cdk-addons=true",
+            "-l", "kubernetes.io/cluster-service=true",
             "--prune=true",
             "--force"]
     kubectl(*args)

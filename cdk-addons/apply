@@ -3,6 +3,7 @@
 import os
 import shutil
 import subprocess
+import yaml
 from jinja2 import Template
 
 template_dir = os.path.join(os.environ["SNAP"], "templates")
@@ -43,8 +44,20 @@ def render_template(file, context, required=True):
         return
     with open(source) as f:
         template = Template(f.read())
+    content = template.render(context)
+
+    # apply cdk-addons=true label
+    data = [part for part in yaml.load_all(content) if part]
+    for part in data:
+        part["metadata"]["labels"]["cdk-addons"] = "true"
+        # Adding kubernetes.io/cluster-service=true label for now. We should
+        # probably remove this later and stop using it after the
+        # cdk-addons=true label has been live for a couple releases.
+        part["metadata"]["labels"]["kubernetes.io/cluster-service"] = "true"
+    content = yaml.dump_all(data)
+
     with open(dest, "w") as f:
-        f.write(template.render(context))
+        f.write(content)
 
 def apply_addons():
     # Apply dns service first and then recursively the rest.
@@ -61,13 +74,6 @@ def apply_addons():
             "--namespace=kube-system",
             "-l", "kubernetes.io/cluster-service=true",
             "--prune=true",
-            "--force"]
-    kubectl(*args)
-    args = ["apply",
-            "-f", addon_dir,
-            "--recursive",
-            "--namespace=kube-system",
-            "-l", "k8s-app=kubernetes-dashboard",
             "--force"]
     kubectl(*args)
 

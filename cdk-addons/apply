@@ -24,6 +24,9 @@ def render_templates():
             "num_nodes": get_node_count()
         }
     }
+    registry_override = get_snap_config("registry-override", required=False)
+    if registry_override:
+        context["registry_override"] = registry_override
     render_template("kubedns-sa.yaml", context, required=False)
     render_template("kubedns-cm.yaml", context, required=False)
     render_template("kubedns-controller.yaml", context)

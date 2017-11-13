@@ -77,6 +77,7 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     with open(source, "r") as f:
         content = f.read()
     content = content.replace("amd64", "{{ arch }}")
+    content = content.replace("gcr.io", "{{ registry_override|default('gcr.io') }}")
     with open(dest, "w") as f:
         f.write(content)
 

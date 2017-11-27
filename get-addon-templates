@@ -88,20 +88,8 @@ def get_addon_templates():
     os.mkdir(dest)
     with kubernetes_repo() as repo:
         log.info("Copying addons to " + dest)
-        add_addon(repo, "dns/kubedns-sa.yaml", dest, required=False)
-        add_addon(repo, "dns/kubedns-cm.yaml", dest, required=False)
-        try:
-            add_addon(repo, "dns/kubedns-controller.yaml.in",
-                      dest + "/kubedns-controller.yaml")
-            add_addon(repo, "dns/kubedns-svc.yaml.in",
-                      dest + "/kubedns-svc.yaml")
-        except IOError as e:
-            # fall back to the older filenames
-            log.debug(e)
-            add_addon(repo, "dns/skydns-rc.yaml.in",
-                      dest + "/kubedns-controller.yaml")
-            add_addon(repo, "dns/skydns-svc.yaml.in",
-                      dest + "/kubedns-svc.yaml")
+
+        add_addon(repo, "dns/kube-dns.yaml.in", dest + "/kube-dns.yaml")
 
         influxdb = "cluster-monitoring/influxdb"
         add_addon(repo, influxdb + "/grafana-service.yaml", dest)

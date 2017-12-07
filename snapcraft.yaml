@@ -1,0 +1,25 @@
+name: cdk-addons
+version: '1.8.4'
+summary: Addons for the Canonical Distribution of Kubernetes
+description: |
+  Addons for the Canonical Distribution of Kubernetes
+grade: stable
+confinement: strict
+apps:
+  apply:
+    command: apply
+    plugs:
+    - home
+    - network
+parts:
+  cdk-addons:
+    plugin: dump
+    source: build/
+    prepare: |
+      set -eu
+      export KUBE_ARCH=`dpkg --print-architecture` 
+      curl -LO https://dl.k8s.io/vKUBE_VERSION/bin/linux/${KUBE_ARCH}/kubectl
+      chmod +x kubectl
+      KUBE_VERSION=v1.8.4 KUBE_DASHBOARD_VERSION=v1.6.3 ../../../get-addon-templates
+
+

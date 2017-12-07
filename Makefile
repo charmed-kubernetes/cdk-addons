@@ -13,8 +13,13 @@ default: clean
 	chmod +x ${BUILD}/kubectl
 	sed 's/KUBE_VERSION/${KUBE_ERSION}/g' cdk-addons.yaml > ${BUILD}/snapcraft.yaml
 	sed -i "s/KUBE_ARCH/${KUBE_ARCH}/g" ${BUILD}/snapcraft.yaml
-	cd ${BUILD} && snapcraft
-	mv build/*.snap .
+	#cd ${BUILD} && snapcraft
+	#mv build/*.snap .
+
+prep-addons-snap: clean
+	cp -r cdk-addons ${BUILD}
+	sed "s/\$$KUBE_VERSION/${KUBE_ERSION}/g" prep-cdk-addons.yaml > snapcraft.yaml
+	sed -i 's/\$$KUBE_DASHBOARD_VERSION/${KUBE_DASHBOARD_VERSION}/g' snapcraft.yaml
 
 docker: clean
 	docker build -t cdk-addons-builder .

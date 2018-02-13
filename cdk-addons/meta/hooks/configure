@@ -4,6 +4,6 @@ set -eu
 rm -rf "$SNAP_DATA/config"
 mkdir "$SNAP_DATA/config"
 
-for key in arch kubeconfig dns-domain enable-dashboard enable-kube-dns; do
+for key in arch kubeconfig dns-domain enable-dashboard enable-kube-dns gf-www; do
     snapctl get "$key" > "$SNAP_DATA/config/$key"
 done

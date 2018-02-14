@@ -11,7 +11,7 @@ cdk-addons_1.6.2_amd64.snap
 
 By default, the latest stable version of Kubernetes is queried. To override this,
 set the `KUBE_VERSION` variable. The dashboard included by default is v1.6.3
-and you can override this via the KUBE_DASHBOARD_VERSION varibale when calling make:
+and you can override this via the KUBE_DASHBOARD_VERSION variable when calling make:
 
 ```sh
 $ make KUBE_VERSION=v1.7.1 KUBE_DASHBOARD_VERSION=v1.6.2

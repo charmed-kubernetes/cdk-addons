@@ -18,6 +18,7 @@ def render_templates():
     os.mkdir(addon_dir)
     context = {
         "arch": get_snap_config("arch"),
+        "gfwww": get_snap_config("gf-www"),
         "pillar": {
             "dns_domain": get_snap_config("dns-domain"),
             "num_nodes": get_node_count()

@@ -67,7 +67,7 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     """ Add an addon template from the given repo and source.
 
     Any occurrences of 'amd64' are replaced with '{{ arch }}' so the snap can
-    fill it in from config. """
+    fill it in from config. Same for grafana www root."""
     source = os.path.join(repo, base, source)
     if not os.path.exists(source) and not required:
         return
@@ -78,6 +78,8 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
         content = f.read()
     content = content.replace("amd64", "{{ arch }}")
     content = content.replace("clusterIP: {{ pillar['dns_server'] }}", "# clusterIP: {{ pillar['dns_server'] }}")
+    gfwww = "/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana/"
+    content = content.replace(gfwww, "{{ gfwww }}")
     with open(dest, "w") as f:
         f.write(content)
 

@@ -1,5 +1,5 @@
 KUBE_ARCH=amd64
-KUBE_DASHBOARD_VERSION=v1.8.1
+KUBE_DASHBOARD_VERSION=v1.8.3
 KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)

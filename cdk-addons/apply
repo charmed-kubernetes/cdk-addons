@@ -33,7 +33,7 @@ def render_templates():
         render_template("heapster-rbac.yaml", context)
         render_template("heapster-controller.yaml", context)
         render_template("heapster-service.yaml", context)
-    if get_snap_config("enable-metrics") == "true":
+    if get_snap_config("enable-metrics", required=False) == "true":
         render_template("auth-delegator.yaml", context)
         render_template("auth-reader.yaml", context)
         render_template("metrics-apiservice.yaml", context)

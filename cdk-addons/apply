@@ -33,6 +33,8 @@ def render_templates():
         render_template("heapster-rbac.yaml", context)
         render_template("heapster-controller.yaml", context)
         render_template("heapster-service.yaml", context)
+    if get_snap_config("enable-gpu", required=False) == "true":
+        render_template("daemonset.yaml", context)
 
 def render_template(file, context, required=True):
     source = os.path.join(template_dir, file)

@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import logging
+import yaml
 from contextlib import contextmanager
 
 
@@ -47,6 +48,7 @@ def kubernetes_repo():
     finally:
         shutil.rmtree(path)
 
+
 @contextmanager
 def kubernetes_dashboard_repo():
     """ Yield a kubernetes dashboard repo to copy yamls from. """
@@ -57,6 +59,20 @@ def kubernetes_dashboard_repo():
     try:
         cmd = ["git", "clone", repo, path, "-b", tag, "--depth", "1",
                "--single-branch"]
+        run_with_logging(cmd)
+        yield path
+    finally:
+        shutil.rmtree(path)
+
+
+@contextmanager
+def nvidia_plugin_repo():
+    """ Yield a nvidia plugin repo to copy yaml from. """
+    repo = "https://github.com/NVIDIA/k8s-device-plugin.git"
+    log.info("Cloning %s" % (repo))
+    path = tempfile.mkdtemp(prefix="nvidia")
+    try:
+        cmd = ["git", "clone", repo, path, "--depth", "1"]
         run_with_logging(cmd)
         yield path
     finally:
@@ -80,6 +96,17 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     content = content.replace("clusterIP: {{ pillar['dns_server'] }}", "# clusterIP: {{ pillar['dns_server'] }}")
     with open(dest, "w") as f:
         f.write(content)
+
+
+def patch_plugin_manifest(repo, file):
+    source = os.path.join(repo, file)
+    with open(source) as stream:
+        manifest = yaml.load(stream)
+    manifest['spec']['template']['spec']['containers'][0]['env'] = \
+        [{'name': 'DP_DISABLE_HEALTHCHECKS', 'value': 'xids'}]
+    manifest['spec']['template']['spec']['nodeSelector'] = {'gpu': 'true'}
+    with open(source, 'w') as yaml_file:
+        yaml.dump(manifest, yaml_file, default_flow_style=False)
 
 
 def get_addon_templates():
@@ -114,6 +141,11 @@ def get_addon_templates():
         log.info("Copying dashboard to " + dest)
         add_addon(repo, "src/deploy/recommended/kubernetes-dashboard.yaml",
                   dest, base='.')
+
+    with nvidia_plugin_repo() as repo:
+        log.info("Copying nvidia plugin to " + dest)
+        patch_plugin_manifest(repo, "nvidia-device-plugin.yml")
+        add_addon(repo, "nvidia-device-plugin.yml", dest, base='.')
 
 
 def parse_args():

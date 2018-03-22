@@ -40,6 +40,8 @@ def render_templates():
         render_template("metrics-server-deployment.yaml", context)
         render_template("metrics-server-service.yaml", context)
         render_template("resource-reader.yaml", context)
+    if get_snap_config("enable-gpu", required=False) == "true":
+        render_template("nvidia-device-plugin.yml", context)
 
 def render_template(file, context, required=True):
     source = os.path.join(template_dir, file)

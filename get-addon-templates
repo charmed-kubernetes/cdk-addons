@@ -102,6 +102,14 @@ def get_addon_templates():
         # Heapster RBAC
         add_addon(repo, "cluster-monitoring/heapster-rbac.yaml", dest)
 
+        # metrics server
+        add_addon(repo, "metrics-server/auth-delegator.yaml", dest)
+        add_addon(repo, "metrics-server/auth-reader.yaml", dest)
+        add_addon(repo, "metrics-server/metrics-apiservice.yaml", dest)
+        add_addon(repo, "metrics-server/metrics-server-deployment.yaml", dest)
+        add_addon(repo, "metrics-server/metrics-server-service.yaml", dest)
+        add_addon(repo, "metrics-server/resource-reader.yaml", dest)
+
     with kubernetes_dashboard_repo() as repo:
         log.info("Copying dashboard to " + dest)
         add_addon(repo, "src/deploy/recommended/kubernetes-dashboard.yaml",

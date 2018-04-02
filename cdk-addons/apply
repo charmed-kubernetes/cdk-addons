@@ -37,6 +37,8 @@ def render_templates():
         render_template("heapster-rbac.yaml", context)
         render_template("heapster-controller.yaml", context)
         render_template("heapster-service.yaml", context)
+    if get_snap_config("enable-gpu", required=False) == "true":
+        render_template("nvidia-device-plugin.yml", context)
     if get_snap_config("enable-metrics", required=False) == "true":
         render_template("auth-delegator.yaml", context)
         render_template("auth-reader.yaml", context)

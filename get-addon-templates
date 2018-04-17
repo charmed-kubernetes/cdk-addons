@@ -129,9 +129,6 @@ def get_addon_templates():
         # Heapster RBAC
         add_addon(repo, "cluster-monitoring/heapster-rbac.yaml", dest)
 
-        #nvidia device plugin
-        add_addon(repo, "device-plugins/nvidia-gpu/daemonset.yaml", dest)
-
         # metrics server
         add_addon(repo, "metrics-server/auth-delegator.yaml", dest)
         add_addon(repo, "metrics-server/auth-reader.yaml", dest)

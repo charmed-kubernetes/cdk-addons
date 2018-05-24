@@ -12,6 +12,8 @@ addon_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons")
 def main():
     if render_templates():
         apply_addons()
+    else:
+        remove_all_addons()
 
 def render_templates():
     shutil.rmtree(addon_dir, ignore_errors=True)
@@ -95,6 +97,23 @@ def apply_addons():
             "--force"]
     kubectl(*args)
 
+def remove_all_addons():
+    args = ["kubectl",
+            "delete",
+            "apiservices,"
+            "clusterroles,"
+            "clusterrolebindings,"
+            "configmaps,"
+            "deployments,"
+            "roles,"
+            "rolebindings,"
+            "secrets,"
+            "services,"
+            "serviceaccounts",
+            "-l",
+            "kubernetes.io/cluster-service=true",
+            "--force"]
+    kubectl(*args)
 
 def kubectl(*args):
     cmd = [os.path.join(os.environ["SNAP"], "kubectl")]

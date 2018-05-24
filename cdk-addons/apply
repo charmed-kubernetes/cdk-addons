@@ -99,6 +99,8 @@ def apply_addons():
 
 def remove_all_addons():
     args = ["kubectl",
+            "-n",
+            "kube-system",
             "delete",
             "apiservices,"
             "clusterroles,"

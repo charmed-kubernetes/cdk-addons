@@ -98,8 +98,7 @@ def apply_addons():
     kubectl(*args)
 
 def remove_all_addons():
-    args = ["kubectl",
-            "-n",
+    args = ["-n",
             "kube-system",
             "delete",
             "apiservices,"

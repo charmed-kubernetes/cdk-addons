@@ -10,8 +10,8 @@ template_dir = os.path.join(os.environ["SNAP"], "templates")
 addon_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons")
 
 def main():
-    render_templates()
-    apply_addons()
+    if render_templates():
+        apply_addons()
 
 def render_templates():
     shutil.rmtree(addon_dir, ignore_errors=True)
@@ -27,8 +27,10 @@ def render_templates():
         # formula from https://github.com/kubernetes/kubernetes/blob/v1.9.6/cluster/addons/cluster-monitoring/influxdb/heapster-controller.yaml#L11
         "nanny_memory": str(90 * 1024 + node_count * 200) + "Ki"
     }
+    rendered = False
     if get_snap_config("enable-kube-dns") == "true":
         render_template("kube-dns.yaml", context)
+        rendered = True
     if get_snap_config("enable-dashboard") == "true":
         render_template("kubernetes-dashboard.yaml", context)
         render_template("influxdb-grafana-controller.yaml", context)
@@ -37,8 +39,10 @@ def render_templates():
         render_template("heapster-rbac.yaml", context)
         render_template("heapster-controller.yaml", context)
         render_template("heapster-service.yaml", context)
+        rendered = True
     if get_snap_config("enable-gpu", required=False) == "true":
         render_template("nvidia-device-plugin.yml", context)
+        rendered = True
     if get_snap_config("enable-metrics", required=False) == "true":
         render_template("auth-delegator.yaml", context)
         render_template("auth-reader.yaml", context)
@@ -46,6 +50,8 @@ def render_templates():
         render_template("metrics-server-deployment.yaml", context)
         render_template("metrics-server-service.yaml", context)
         render_template("resource-reader.yaml", context)
+        rendered = True
+    return rendered
 
 def render_template(file, context, required=True):
     source = os.path.join(template_dir, file)

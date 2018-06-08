@@ -117,7 +117,7 @@ def get_addon_templates():
     with kubernetes_repo() as repo:
         log.info("Copying addons to " + dest)
 
-        add_addon(repo, "dns/kube-dns.yaml.in", dest + "/kube-dns.yaml")
+        add_addon(repo, "dns/kube-dns/kube-dns.yaml.in", dest + "/kube-dns.yaml")
 
         influxdb = "cluster-monitoring/influxdb"
         add_addon(repo, influxdb + "/grafana-service.yaml", dest)

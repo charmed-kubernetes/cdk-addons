@@ -111,7 +111,8 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
                      "image: {{ registry|default('k8s.gcr.io') }}/",
                      content)
     content = re.sub(r"image:\s*nvidia/",
-                     "image: {{ registry|default('nvidia') }}/")
+                     "image: {{ registry|default('nvidia') }}/",
+                     content)
     with open(dest, "w") as f:
         f.write(content)
 

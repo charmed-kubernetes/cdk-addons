@@ -102,7 +102,9 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
 		"k8s.gcr.io/addon-resizer:1.8.1",
 		"cdkbot/addon-resizer-{{ arch }}:1.8.1"
     )
-
+    content = content.replace("cdkbot", "{{ registry|default('cdkbot') }}")
+    content = content.replace("k8s.gcr.io", "{{ registry|default('k8s.gcr.io') }}")
+    content = content.replace("nvidia", "{{ registry|default('nvidia') }}")
     with open(dest, "w") as f:
         f.write(content)
 

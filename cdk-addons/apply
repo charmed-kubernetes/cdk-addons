@@ -29,6 +29,11 @@ def render_templates():
         # formula from https://github.com/kubernetes/kubernetes/blob/v1.9.6/cluster/addons/cluster-monitoring/influxdb/heapster-controller.yaml#L11
         "nanny_memory": str(90 * 1024 + node_count * 200) + "Ki"
     }
+
+    registry = get_snap_config("registry", required=False)
+    if registry:
+        context["registry"] = registry
+
     rendered = False
     if get_snap_config("enable-kube-dns") == "true":
         render_template("kube-dns.yaml", context)

@@ -23,6 +23,11 @@ def render_templates():
             "num_nodes": get_node_count()
         }
     }
+
+    registry = get_snap_config("registry", required=False)
+    if registry:
+        context["registry"] = registry
+
     if get_snap_config("enable-kube-dns") == "true":
         render_template("kube-dns.yaml", context)
     if get_snap_config("enable-dashboard") == "true":

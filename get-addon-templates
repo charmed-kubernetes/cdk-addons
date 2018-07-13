@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -94,6 +95,17 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
         content = f.read()
     content = content.replace("amd64", "{{ arch }}")
     content = content.replace("clusterIP: {{ pillar['dns_server'] }}", "# clusterIP: {{ pillar['dns_server'] }}")
+    # Make sure images come from the configured registry (or use the default)
+    content = re.sub(r"image:\s*cdkbot/",
+                     "image: {{ registry|default('cdkbot') }}/",
+                     content)
+    content = re.sub(r"image:\s*gcr.io/",
+                     "image: {{ registry|default('gcr.io') }}/",
+                     content)
+    content = re.sub(r"image:\s*nvidia/",
+                     "image: {{ registry|default('nvidia') }}/",
+                     content)
+
     with open(dest, "w") as f:
         f.write(content)
 

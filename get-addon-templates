@@ -156,7 +156,7 @@ def patch_ceph_storage_class(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
         manifest = yaml.load(stream)
-    manifest['parameters']['monitors'] = "{{ monitors }}"
+    manifest['parameters']['mon_hosts'] = "{{ monitors }}"
     manifest['parameters']['pool'] = "{{ pool_name }}"
     manifest['parameters']['fsType'] = "{{ fs_type }}"
     manifest['metadata']['name'] = "{{ sc_name }}"

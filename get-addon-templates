@@ -80,6 +80,20 @@ def nvidia_plugin_repo():
         shutil.rmtree(path)
 
 
+@contextmanager
+def ceph_csi_repo():
+    """ Yield a ceph CSI repo from which to copy template yaml. """
+    repo = "http://github.com/ceph/ceph-csi.git"
+    log.info("Cloning %s" % (repo))
+    path = tempfile.mkdtemp(prefix="ceph")
+    try:
+        cmd = ["git", "clone", repo, path, "--depth", "1"]
+        run_with_logging(cmd)
+        yield path
+    finally:
+        shutil.rmtree(path)
+
+
 def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     """ Add an addon template from the given repo and source.
 
@@ -128,6 +142,39 @@ def patch_plugin_manifest(repo, file):
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
 
+def patch_ceph_secret(repo, file):
+    source = os.path.join(repo, file)
+    with open(source) as stream:
+        manifest = yaml.load(stream)
+    manifest['data']['admin'] = "{{ admin_key }}"
+    manifest['data']['kubernetes'] = "{{ kubernetes_key }}"
+    with open(source, 'w') as yaml_file:
+        yaml.dump(manifest, yaml_file, default_flow_style=False)
+
+
+def patch_ceph_storage_class(repo, file):
+    source = os.path.join(repo, file)
+    with open(source) as stream:
+        manifest = yaml.load(stream)
+    manifest['parameters']['monitors'] = "{{ monitors }}"
+    manifest['parameters']['pool'] = "{{ pool_name }}"
+    manifest['parameters']['fsType'] = "{{ fs_type }}"
+    manifest['metadata']['name'] = "{{ sc_name }}"
+    with open(source, 'w') as yaml_file:
+        yaml.dump(manifest, yaml_file, default_flow_style=False)
+
+    # :-/ Would be nice to be able to add this template a different way
+    with open(source, "r") as f:
+        content = f.read()
+    content = content.replace("metadata:", """metadata:
+{% if default == true %}
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+{% endif %}""")
+    with open(source, "w") as f:
+        f.write(content)
+
+
 def get_addon_templates():
     """ Get addon templates. This will clone the kubernetes repo from upstream
     and copy addons to ./templates """
@@ -165,6 +212,18 @@ def get_addon_templates():
         log.info("Copying nvidia plugin to " + dest)
         patch_plugin_manifest(repo, "nvidia-device-plugin.yml")
         add_addon(repo, "nvidia-device-plugin.yml", dest, base='.')
+
+    with ceph_csi_repo() as repo:
+        log.info("Copying ceph CSI templates to " + dest)
+        add_addon(repo, "deploy/rbd/kubernetes/csi-provisioner.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/csi-attacher.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/rbdplugin.yaml", dest, base='.')
+
+        patch_ceph_secret(repo, "deploy/rbd/kubernetes/rbd-secrets.yaml")
+        add_addon(repo, "deploy/rbd/kubernetes/rbd-secrets.yaml", dest, base='.')
+
+        patch_ceph_storage_class(repo, "deploy/rbd/kubernetes/rbd-storage-class.yaml")
+        add_addon(repo, "deploy/rbd/kubernetes/rbd-storage-class.yaml", dest, base='.')
 
 
 def parse_args():

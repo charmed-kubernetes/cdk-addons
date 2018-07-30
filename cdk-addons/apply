@@ -115,10 +115,6 @@ def render_template(file, context, required=True, render_filename=None):
     for part in data:
         part["metadata"].setdefault("labels", {})
         part["metadata"]["labels"]["cdk-addons"] = "true"
-        # Adding kubernetes.io/cluster-service=true label for now. We should
-        # probably remove this later and stop using it after the
-        # cdk-addons=true label has been live for a couple releases.
-        part["metadata"]["labels"]["kubernetes.io/cluster-service"] = "true"
     content = yaml.dump_all(data)
 
     with open(dest, "w") as f:
@@ -153,8 +149,7 @@ def remove_all_addons():
             "secrets,"
             "services,"
             "serviceaccounts",
-            "-l",
-            "kubernetes.io/cluster-service=true",
+            "-l", "cdk-addons=true",
             "--force"]
     kubectl(*args)
 

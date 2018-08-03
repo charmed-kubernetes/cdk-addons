@@ -59,7 +59,7 @@ def render_templates():
         render_template("resource-reader.yaml", context)
         rendered = True
     if get_snap_config("enable-ceph", required=False) == "true":
-        ceph_context = context
+        ceph_context = context.copy()
         default_storage = get_snap_config("default-storage", required=True)
         ceph_context['admin_key'] = get_snap_config(
             "ceph-admin-key", required=True)
@@ -73,7 +73,7 @@ def render_templates():
         render_template("csi-provisioner.yaml", ceph_context)
         render_template("csi-attacher.yaml", ceph_context)
 
-        ext4_context = ceph_context
+        ext4_context = ceph_context.copy()
         if default_storage == 'ceph-ext4':
             ext4_context['default'] = True
         else:
@@ -84,7 +84,7 @@ def render_templates():
         render_template("rbd-storage-class.yaml", ext4_context,
                         render_filename="ceph-ext4-storage-class.yaml")
 
-        xfs_context = ceph_context
+        xfs_context = ceph_context.copy()
         if (default_storage == 'ceph-xfs' or
                 default_storage == 'auto'):
             xfs_context['default'] = True

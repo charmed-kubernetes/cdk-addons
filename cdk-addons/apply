@@ -58,11 +58,52 @@ def render_templates():
         render_template("metrics-server-service.yaml", context)
         render_template("resource-reader.yaml", context)
         rendered = True
+    if get_snap_config("enable-ceph", required=False) == "true":
+        ceph_context = context.copy()
+        default_storage = get_snap_config("default-storage", required=True)
+        ceph_context['admin_key'] = get_snap_config(
+            "ceph-admin-key", required=True)
+        ceph_context['kubernetes_key'] = get_snap_config(
+            "ceph-kubernetes-key", required=True)
+        ceph_context['mon_hosts'] = get_snap_config(
+            "ceph-mon-hosts", required=True)
+
+        render_template("rbd-secrets.yaml", ceph_context)
+        render_template("rbdplugin.yaml", ceph_context)
+        render_template("csi-provisioner.yaml", ceph_context)
+        render_template("csi-attacher.yaml", ceph_context)
+
+        ext4_context = ceph_context.copy()
+        if default_storage == 'ceph-ext4':
+            ext4_context['default'] = True
+        else:
+            ext4_context['default'] = False
+        ext4_context['pool_name'] = 'ext4-pool'
+        ext4_context['fs_type'] = 'ext4'
+        ext4_context['sc_name'] = 'ceph-ext4'
+        render_template("rbd-storage-class.yaml", ext4_context,
+                        render_filename="ceph-ext4-storage-class.yaml")
+
+        xfs_context = ceph_context.copy()
+        if (default_storage == 'ceph-xfs' or
+                default_storage == 'auto'):
+            xfs_context['default'] = True
+        else:
+            xfs_context['default'] = False
+        xfs_context['pool_name'] = 'xfs-pool'
+        xfs_context['fs_type'] = 'xfs'
+        xfs_context['sc_name'] = 'ceph-xfs'
+        render_template("rbd-storage-class.yaml", xfs_context,
+                        render_filename="ceph-xfs-storage-class.yaml")
+
     return rendered
 
-def render_template(file, context, required=True):
+def render_template(file, context, required=True, render_filename=None):
     source = os.path.join(template_dir, file)
-    dest = os.path.join(addon_dir, file)
+    if render_filename is None:
+        dest = os.path.join(addon_dir, file)
+    else:
+        dest = os.path.join(addon_dir, render_filename)
     if not os.path.exists(source) and not required:
         return
     with open(source) as f:
@@ -85,23 +126,19 @@ def apply_addons():
         dns_svc = os.path.join(addon_dir, "kube-dns.yaml")
         args = ["apply",
                 "-f", dns_svc,
-                "--namespace=kube-system",
                 "-l", "cdk-addons=true",
                 "--force"]
         kubectl(*args)
     args = ["apply",
             "-f", addon_dir,
             "--recursive",
-            "--namespace=kube-system",
             "-l", "cdk-addons=true",
             "--prune=true",
             "--force"]
     kubectl(*args)
 
 def remove_all_addons():
-    args = ["-n",
-            "kube-system",
-            "delete",
+    args = ["delete",
             "apiservices,"
             "clusterroles,"
             "clusterrolebindings,"

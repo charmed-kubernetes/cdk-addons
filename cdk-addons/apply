@@ -68,10 +68,10 @@ def render_templates():
         ceph_context['mon_hosts'] = get_snap_config(
             "ceph-mon-hosts", required=True)
 
-        render_template("rbd-secrets.yaml", ceph_context)
-        render_template("rbdplugin.yaml", ceph_context)
-        render_template("csi-provisioner.yaml", ceph_context)
-        render_template("csi-attacher.yaml", ceph_context)
+        render_template("ceph-secret.yaml", ceph_context)
+        render_template("csi-rbdplugin.yaml", ceph_context)
+        render_template("csi-rbdplugin-provisioner.yaml", ceph_context)
+        render_template("csi-rbdplugin-attacher.yaml", ceph_context)
 
         ext4_context = ceph_context.copy()
         if default_storage == 'ceph-ext4':
@@ -81,8 +81,8 @@ def render_templates():
         ext4_context['pool_name'] = 'ext4-pool'
         ext4_context['fs_type'] = 'ext4'
         ext4_context['sc_name'] = 'ceph-ext4'
-        render_template("rbd-storage-class.yaml", ext4_context,
-                        render_filename="ceph-ext4-storage-class.yaml")
+        render_template("ceph-storageclass.yaml", ext4_context,
+                        render_filename="ceph-ext4-storageclass.yaml")
 
         xfs_context = ceph_context.copy()
         if (default_storage == 'ceph-xfs' or
@@ -93,9 +93,13 @@ def render_templates():
         xfs_context['pool_name'] = 'xfs-pool'
         xfs_context['fs_type'] = 'xfs'
         xfs_context['sc_name'] = 'ceph-xfs'
-        render_template("rbd-storage-class.yaml", xfs_context,
-                        render_filename="ceph-xfs-storage-class.yaml")
-
+        render_template("ceph-storageclass.yaml", xfs_context,
+                        render_filename="ceph-xfs-storageclass.yaml")
+        # RBAC
+        render_template("csi-attacher-rbac.yaml", ceph_context)
+        render_template("csi-nodeplugin-rbac.yaml", ceph_context)
+        render_template("csi-provisioner-rbac.yaml", ceph_context)
+        rendered = True
     return rendered
 
 def render_template(file, context, required=True, render_filename=None):

@@ -215,15 +215,20 @@ def get_addon_templates():
 
     with ceph_csi_repo() as repo:
         log.info("Copying ceph CSI templates to " + dest)
-        add_addon(repo, "deploy/rbd/kubernetes/csi-provisioner.yaml", dest, base='.')
-        add_addon(repo, "deploy/rbd/kubernetes/csi-attacher.yaml", dest, base='.')
-        add_addon(repo, "deploy/rbd/kubernetes/rbdplugin.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-attacher.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", dest, base='.')
 
-        patch_ceph_secret(repo, "deploy/rbd/kubernetes/rbd-secrets.yaml")
-        add_addon(repo, "deploy/rbd/kubernetes/rbd-secrets.yaml", dest, base='.')
+        patch_ceph_secret(repo, "examples/rbd/secret.yaml")
+        add_addon(repo, "examples/rbd/secret.yaml", os.path.join(dest, "ceph-secret.yaml"), base='.')
 
-        patch_ceph_storage_class(repo, "deploy/rbd/kubernetes/rbd-storage-class.yaml")
-        add_addon(repo, "deploy/rbd/kubernetes/rbd-storage-class.yaml", dest, base='.')
+        patch_ceph_storage_class(repo, "examples/rbd/storageclass.yaml")
+        add_addon(repo, "examples/rbd/storageclass.yaml", os.path.join(dest, "ceph-storageclass.yaml"), base='.')
+
+        # rbac templates
+        add_addon(repo, "deploy/rbd/kubernetes/csi-attacher-rbac.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/csi-provisioner-rbac.yaml", dest, base='.')
 
 
 def parse_args():

@@ -94,6 +94,21 @@ def ceph_csi_repo():
         shutil.rmtree(path)
 
 
+@contextmanager
+def cloud_provider_openstack_repo():
+    """ Yield a cloud provider openstack repo from which to copy template yaml. """
+    #repo = "https://github.com/kubernetes/cloud-provider-openstack.git"
+    repo = "https://github.com/hyperbolic2346/cloud-provider-openstack.git"
+    log.info("Cloning %s" % (repo))
+    path = tempfile.mkdtemp(prefix="openstack")
+    try:
+        cmd = ["git", "clone", repo, path, "--depth", "1", "--single-branch", "-b", "mwilson/template-test"]
+        run_with_logging(cmd)
+        yield path
+    finally:
+        shutil.rmtree(path)
+
+
 def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     """ Add an addon template from the given repo and source.
 
@@ -196,6 +211,31 @@ def patch_metrics_server(repo, file):
         f.write(content)
 
 
+def patch_keystone_deployment(repo, file):
+    source = os.path.join(repo, file)
+    with open(source) as stream:
+        manifest = yaml.load(stream)
+    container = manifest['spec']['template']['spec']['containers'][0]
+    container['image'] = \
+        '{{ registry|default("k8scloudprovider") }}/k8s-keystone-auth'
+    img_index = container['args'].index('--keystone-url') + 1
+    container['args'][img_index] = '{{ keystone_server_url }}'
+    with open(source, 'w') as yaml_file:
+        yaml.dump(manifest, yaml_file, default_flow_style=False)
+
+    # :-/ Would be nice to be able to add this template a different way
+    with open(source, "r") as f:
+        content = f.read()
+    content = content.replace("        - --keystone-url",
+                              """{% if keystone-ssl-ca %}
+        - --keystone-ssl-ca
+        - {{ keystone-ssl-ca }}
+{% endif %}
+        - --keystone-url""")
+    with open(source, "w") as f:
+        f.write(content)
+
+
 def get_addon_templates():
     """ Get addon templates. This will clone the kubernetes repo from upstream
     and copy addons to ./templates """
@@ -252,6 +292,15 @@ def get_addon_templates():
         add_addon(repo, "deploy/rbd/kubernetes/csi-attacher-rbac.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-provisioner-rbac.yaml", dest, base='.')
+
+    with cloud_provider_openstack_repo() as repo:
+        log.info("Copying openstack tempates to " + dest)
+        add_addon(repo, "examples/webhook/keystone-auth-certs-secret.yaml", dest, base='.')
+
+        patch_keystone_deployment(repo, "examples/webhook/keystone-deployment.yaml")
+        add_addon(repo, "examples/webhook/keystone-deployment.yaml", dest, base='.')
+        add_addon(repo, "examples/webhook/keystone-service.yaml", dest, base='.')
+        add_addon(repo, "examples/webhook/keystone-rbac.yaml", dest, base='.')
 
 
 def parse_args():

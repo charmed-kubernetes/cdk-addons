@@ -227,9 +227,9 @@ def patch_keystone_deployment(repo, file):
     with open(source, "r") as f:
         content = f.read()
     content = content.replace("        - --keystone-url",
-                              """{% if keystone-ssl-ca %}
+                              """{% if keystone_ssl_ca %}
         - --keystone-ssl-ca
-        - {{ keystone-ssl-ca }}
+        - {{ keystone_ssl_ca }}
 {% endif %}
         - --keystone-url""")
     with open(source, "w") as f:

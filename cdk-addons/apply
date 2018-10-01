@@ -27,7 +27,19 @@ def render_templates():
         },
         # nanny_memory for heapster
         # formula from https://github.com/kubernetes/kubernetes/blob/v1.9.6/cluster/addons/cluster-monitoring/influxdb/heapster-controller.yaml#L11
-        "nanny_memory": str(90 * 1024 + node_count * 200) + "Ki"
+        "nanny_memory": str(90 * 1024 + node_count * 200) + "Ki",
+        # heapster server information taken from https://github.com/kubernetes/kubernetes/blob/8bd0a306b599bc8511a238c8c69c03c729767350/cluster/gce/gci/configure-helper.sh#L2349
+        "base_metrics_cpu": "80m",
+        "metrics_cpu_per_node": "0.5",
+        "base_metrics_memory": "140Mi",
+        "metrics_memory_per_node": "4",
+        "heapster_min_cluster_size": "16",
+
+        # metrics server information taken from https://github.com/kubernetes/kubernetes/blob/8bd0a306b599bc8511a238c8c69c03c729767350/cluster/gce/gci/configure-helper.sh#L2402
+        "base_metrics_server_cpu": "40m",
+        "base_metrics_server_memory": "40Mi",
+        "metrics_server_memory_per_node": "4",
+        "metrics_server_min_cluster_size": "16"
     }
 
     registry = get_snap_config("registry", required=False)

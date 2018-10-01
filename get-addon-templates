@@ -175,6 +175,37 @@ def patch_ceph_storage_class(repo, file):
         f.write(content)
 
 
+def patch_heapster_controller(repo, file):
+    source = os.path.join(repo, 'cluster/addons', file)
+    with open(source, "r") as f:
+        content = f.read()
+    # setup kubelet connection to use https port 10250 since 10255 was deprecated due to security concerns
+    content = content.replace("kubernetes.summary_api:''", "kubernetes.summary_api:https://kubernetes.default?kubeletPort=10250&kubeletHttps=true")
+    with open(source, "w") as f:
+        f.write(content)
+
+
+def patch_metrics_server(repo, file):
+    ugly = "# These are needed for GKE, which doesn't support secure communication yet." # noqa
+    source = os.path.join(repo, 'cluster/addons', file)
+    with open(source, "r") as f:
+        lines = f.readlines()
+    with open(source, "w") as f:
+        # we need to skip over 4 lines when we find the GCE specific entries
+        # it isn't delineated well, so we'll just search for the comment and
+        # then skip 4 lines. :/
+        skip_count = 0
+        for line in lines:
+            if skip_count == 0 and line.strip() != ugly:
+                f.write(line)
+            elif skip_count == 0:
+                # found the nasty string
+                skip_count = 4
+
+            if skip_count > 0:
+                skip_count = skip_count-1
+
+
 def get_addon_templates():
     """ Get addon templates. This will clone the kubernetes repo from upstream
     and copy addons to ./templates """
@@ -187,6 +218,7 @@ def get_addon_templates():
 
         influxdb = "cluster-monitoring/influxdb"
         add_addon(repo, influxdb + "/grafana-service.yaml", dest)
+        patch_heapster_controller(repo, influxdb + "/heapster-controller.yaml")
         add_addon(repo, influxdb + "/heapster-controller.yaml", dest)
         add_addon(repo, influxdb + "/heapster-service.yaml", dest)
         add_addon(repo, influxdb + "/influxdb-grafana-controller.yaml", dest)
@@ -199,6 +231,7 @@ def get_addon_templates():
         add_addon(repo, "metrics-server/auth-delegator.yaml", dest)
         add_addon(repo, "metrics-server/auth-reader.yaml", dest)
         add_addon(repo, "metrics-server/metrics-apiservice.yaml", dest)
+        patch_metrics_server(repo, "metrics-server/metrics-server-deployment.yaml")
         add_addon(repo, "metrics-server/metrics-server-deployment.yaml", dest)
         add_addon(repo, "metrics-server/metrics-server-service.yaml", dest)
         add_addon(repo, "metrics-server/resource-reader.yaml", dest)

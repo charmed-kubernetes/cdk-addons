@@ -186,24 +186,14 @@ def patch_heapster_controller(repo, file):
 
 
 def patch_metrics_server(repo, file):
-    ugly = "# These are needed for GKE, which doesn't support secure communication yet." # noqa
+    # nuke GKE specific stuff
     source = os.path.join(repo, 'cluster/addons', file)
     with open(source, "r") as f:
-        lines = f.readlines()
+        content = f.read()
+    content = content.replace("- --kubelet-port=10255", "# - --kubelet-port=10255")
+    content = content.replace("- --deprecated-kubelet-completely-insecure=true", "# - --deprecated-kubelet-completely-insecure=true")
     with open(source, "w") as f:
-        # we need to skip over 4 lines when we find the GCE specific entries
-        # it isn't delineated well, so we'll just search for the comment and
-        # then skip 4 lines. :/
-        skip_count = 0
-        for line in lines:
-            if skip_count == 0 and line.strip() != ugly:
-                f.write(line)
-            elif skip_count == 0:
-                # found the nasty string
-                skip_count = 4
-
-            if skip_count > 0:
-                skip_count = skip_count-1
+        f.write(content)
 
 
 def get_addon_templates():

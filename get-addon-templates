@@ -97,12 +97,11 @@ def ceph_csi_repo():
 @contextmanager
 def cloud_provider_openstack_repo():
     """ Yield a cloud provider openstack repo from which to copy template yaml. """
-    #repo = "https://github.com/kubernetes/cloud-provider-openstack.git"
-    repo = "https://github.com/hyperbolic2346/cloud-provider-openstack.git"
+    repo = "https://github.com/kubernetes/cloud-provider-openstack.git"
     log.info("Cloning %s" % (repo))
     path = tempfile.mkdtemp(prefix="openstack")
     try:
-        cmd = ["git", "clone", repo, path, "--depth", "1", "--single-branch", "-b", "mwilson/template-test"]
+        cmd = ["git", "clone", repo, path, "--depth", "1"]
         run_with_logging(cmd)
         yield path
     finally:
@@ -213,25 +212,17 @@ def patch_metrics_server(repo, file):
 
 def patch_keystone_deployment(repo, file):
     source = os.path.join(repo, file)
-    with open(source) as stream:
-        manifest = yaml.load(stream)
-    container = manifest['spec']['template']['spec']['containers'][0]
-    container['image'] = \
-        '{{ registry|default("k8scloudprovider") }}/k8s-keystone-auth'
-    img_index = container['args'].index('--keystone-url') + 1
-    container['args'][img_index] = '{{ keystone_server_url }}'
-    with open(source, 'w') as yaml_file:
-        yaml.dump(manifest, yaml_file, default_flow_style=False)
-
     # :-/ Would be nice to be able to add this template a different way
     with open(source, "r") as f:
         content = f.read()
-    content = content.replace("        - --keystone-url",
+    content = content.replace('image: k8scloudprovider/k8s-keystone-auth',
+                              'image: {{ registry|default("k8scloudprovider") }}/k8s-keystone-auth') # noqa
+    content = content.replace("            - --keystone-url",
                               """{% if keystone_ssl_ca %}
-        - --keystone-ssl-ca
-        - {{ keystone_ssl_ca }}
+            - --keystone-ssl-ca
+            - {{ keystone_ssl_ca }}
 {% endif %}
-        - --keystone-url""")
+            - --keystone-url""")
     with open(source, "w") as f:
         f.write(content)
 

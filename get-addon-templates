@@ -159,6 +159,7 @@ def patch_ceph_storage_class(repo, file):
     manifest['parameters']['monitors'] = "{{ mon_hosts }}"
     manifest['parameters']['pool'] = "{{ pool_name }}"
     manifest['parameters']['fsType'] = "{{ fs_type }}"
+    manifest['parameters']['userid'] = "admin"
     manifest['metadata']['name'] = "{{ sc_name }}"
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)

@@ -7,6 +7,7 @@ mkdir "$SNAP_DATA/config"
 for key in arch kubeconfig dns-domain enable-dashboard enable-kube-dns \
 		enable-metrics enable-gpu registry \
 		ceph-admin-key ceph-kubernetes-key ceph-mon-hosts ceph-pool-name \
-		default-storage enable-ceph; do
+		default-storage enable-ceph enable-keystone keystone-server-url \
+                keystone-cert-file keystone-key-file keystone-ssl-ca; do
     snapctl get "$key" > "$SNAP_DATA/config/$key"
 done

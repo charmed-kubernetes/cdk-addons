@@ -4,6 +4,8 @@ import os
 import shutil
 import subprocess
 import yaml
+import base64
+
 from jinja2 import Template
 
 template_dir = os.path.join(os.environ["SNAP"], "templates")
@@ -111,6 +113,26 @@ def render_templates():
         render_template("csi-attacher-rbac.yaml", ceph_context)
         render_template("csi-nodeplugin-rbac.yaml", ceph_context)
         render_template("csi-provisioner-rbac.yaml", ceph_context)
+        rendered = True
+    if get_snap_config("enable-keystone", required=False) == "true":
+        keystone_context = context.copy()
+        cert = get_snap_config("keystone-cert-file", required=True)
+        with open(cert, "rb") as image_file:
+            keystone_context['keystone_cert_file'] = \
+                base64.b64encode(image_file.read()).decode('utf-8')
+        key = get_snap_config("keystone-key-file", required=True)
+        with open(key, "rb") as image_file:
+            keystone_context['keystone_key_file'] = \
+                base64.b64encode(image_file.read()).decode('utf-8')
+        keystone_context['keystone_server_url'] = get_snap_config(
+            "keystone-server-url", required=True)
+        keystone_context['keystone_ssl_ca'] = get_snap_config(
+            "keystone-ssl-ca", required=False)
+
+        render_template("keystone-auth-certs-secret.yaml", keystone_context)
+        render_template("keystone-deployment.yaml", keystone_context)
+        render_template("keystone-service.yaml", keystone_context)
+        render_template("keystone-rbac.yaml", keystone_context)
         rendered = True
     return rendered
 

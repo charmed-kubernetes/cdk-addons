@@ -199,7 +199,7 @@ def prune_addons():
 
         # it has our label but isn't a current addon, delete it!
         print('Deleting %s %s/%s' % (kind, namespace, name))
-        args = ['delete', '--wait=false', kind, name]
+        args = ['delete', kind, name]
         if namespace:
             args += ['-n', namespace]
         try:

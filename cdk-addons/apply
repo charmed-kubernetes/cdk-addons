@@ -196,7 +196,11 @@ def prune_addons():
                 data = yaml.load_all(f)
                 for part in data:
                     kind = part['kind']
-                    namespace = part['metadata'].get('namespace')
+                    # If no namespace is specified, it's either an unnamespaced
+                    # resource, or a namespaced resource that will end up in
+                    # 'default'. We can delete both in the same way so we may
+                    # as well put them in the same bucket.
+                    namespace = part['metadata'].get('namespace', 'default')
                     name = part['metadata']['name']
                     current_addons.add((kind, namespace, name))
 
@@ -226,7 +230,9 @@ def prune_addons():
     for item in data['items']:
         kind = item['kind']
         metadata = item['metadata']
-        namespace = metadata.get('namespace')
+        # Depending on k8s version, unnamespaced resources can be returned as
+        # None or "".
+        namespace = metadata.get('namespace') or 'default'
         name = metadata['name']
 
         # skip if it's a current addon
@@ -235,9 +241,7 @@ def prune_addons():
 
         # it has our label but isn't a current addon, delete it!
         print('Deleting %s %s/%s' % (kind, namespace, name))
-        args = ['delete', '--wait=false', kind, name]
-        if namespace:
-            args += ['-n', namespace]
+        args = ['delete', '--wait=false', kind, name, '-n', namespace]
         try:
             kubectl(*args)
         except subprocess.CalledProcessError:

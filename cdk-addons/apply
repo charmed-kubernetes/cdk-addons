@@ -176,13 +176,15 @@ def prune_addons():
             'clusterroles',
             'clusterrolebindings',
             'configmaps',
+            'daemonsets',
             'deployments',
             'pods',
             'roles',
             'rolebindings',
             'secrets',
             'services',
-            'serviceaccounts'
+            'serviceaccounts',
+            'statefulsets'
         ])
     )
     data = json.loads(output)

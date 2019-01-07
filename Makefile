@@ -1,7 +1,6 @@
 KUBE_ARCH=amd64
 # need to jump to master to get 1.10.1 for CVE-2018-18264
-#KUBE_DASHBOARD_VERSION=v1.8.3
-KUBE_DASHBOARD_VERSION=master
+KUBE_DASHBOARD_VERSION=v1.10.1
 KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)

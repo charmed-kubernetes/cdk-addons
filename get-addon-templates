@@ -234,7 +234,7 @@ def patch_dashboard(repo, file):
         content = f.read()
     content = content.replace("- --auto-generate-certificates",
                               """- --auto-generate-certificates
-          - --authentication-mode=basic""")
+          - --authentication-mode=token""")
     with open(source, "w") as f:
         f.write(content)
 

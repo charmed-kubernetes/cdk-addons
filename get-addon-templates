@@ -176,6 +176,20 @@ def patch_ceph_storage_class(repo, file):
         f.write(content)
 
 
+def patch_metrics_reader(repo, file):
+    # add nodes/stats resource
+    source = os.path.join(repo, 'cluster/addons', file)
+    with open(source) as stream:
+        manifest = list(yaml.load_all(stream))
+    for doc in manifest:
+        if doc['kind'] == 'ClusterRole':
+            for rule in doc['rules']:
+                if '' in rule['apiGroups']:
+                    rule['resources'].append('nodes/stats')
+    with open(source, "w") as yaml_file:
+        yaml.dump_all(manifest, yaml_file, default_flow_style=False)
+
+
 def patch_dashboard(repo, file):
     source = os.path.join(repo, file)
     with open(source, "r") as f:
@@ -213,6 +227,7 @@ def get_addon_templates():
         add_addon(repo, "metrics-server/metrics-apiservice.yaml", dest)
         add_addon(repo, "metrics-server/metrics-server-deployment.yaml", dest)
         add_addon(repo, "metrics-server/metrics-server-service.yaml", dest)
+        patch_metrics_reader(repo, "metrics-server/resource-reader.yaml")
         add_addon(repo, "metrics-server/resource-reader.yaml", dest)
 
     with kubernetes_dashboard_repo() as repo:

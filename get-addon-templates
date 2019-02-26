@@ -176,6 +176,27 @@ def patch_ceph_storage_class(repo, file):
         f.write(content)
 
 
+def patch_heapster_controller(repo, file):
+    source = os.path.join(repo, 'cluster/addons', file)
+    with open(source, "r") as f:
+        content = f.read()
+    # setup kubelet connection to use https port 10250 since 10255 was deprecated due to security concerns
+    content = content.replace("kubernetes.summary_api:''", "kubernetes.summary_api:https://kubernetes.default?kubeletPort=10250&kubeletHttps=true")
+    with open(source, "w") as f:
+        f.write(content)
+
+
+def patch_metrics_server(repo, file):
+    # nuke GKE specific stuff
+    source = os.path.join(repo, 'cluster/addons', file)
+    with open(source, "r") as f:
+        content = f.read()
+    content = content.replace("- --kubelet-port=10255", "# - --kubelet-port=10255")
+    content = content.replace("- --deprecated-kubelet-completely-insecure=true", "# - --deprecated-kubelet-completely-insecure=true")
+    with open(source, "w") as f:
+        f.write(content)
+
+
 def patch_metrics_reader(repo, file):
     # add nodes/stats resource
     source = os.path.join(repo, 'cluster/addons', file)
@@ -213,6 +234,7 @@ def get_addon_templates():
 
         influxdb = "cluster-monitoring/influxdb"
         add_addon(repo, influxdb + "/grafana-service.yaml", dest)
+        patch_heapster_controller(repo, influxdb + "/heapster-controller.yaml")
         add_addon(repo, influxdb + "/heapster-controller.yaml", dest)
         add_addon(repo, influxdb + "/heapster-service.yaml", dest)
         add_addon(repo, influxdb + "/influxdb-grafana-controller.yaml", dest)
@@ -225,6 +247,7 @@ def get_addon_templates():
         add_addon(repo, "metrics-server/auth-delegator.yaml", dest)
         add_addon(repo, "metrics-server/auth-reader.yaml", dest)
         add_addon(repo, "metrics-server/metrics-apiservice.yaml", dest)
+        patch_metrics_server(repo, "metrics-server/metrics-server-deployment.yaml")
         add_addon(repo, "metrics-server/metrics-server-deployment.yaml", dest)
         add_addon(repo, "metrics-server/metrics-server-service.yaml", dest)
         patch_metrics_reader(repo, "metrics-server/resource-reader.yaml")

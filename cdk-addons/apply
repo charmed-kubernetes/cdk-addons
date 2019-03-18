@@ -12,6 +12,10 @@ from jinja2 import Template
 
 template_dir = os.path.join(os.environ["SNAP"], "templates")
 addon_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons")
+dns_providers = {
+    'core-dns': 'core-dns.yaml',
+    'kube-dns': 'kube-dns.yaml'
+}
 
 def main():
     if render_templates():
@@ -50,8 +54,9 @@ def render_templates():
         context["registry"] = registry
 
     rendered = False
-    if get_snap_config("enable-kube-dns") == "true":
-        render_template("kube-dns.yaml", context)
+    dns_provider = get_snap_config("dns-provider")
+    if dns_provider in dns_providers:
+        render_template(dns_providers[dns_provider], context)
         rendered = True
     if get_snap_config("enable-dashboard") == "true":
         dash_context = context.copy()
@@ -167,8 +172,9 @@ def render_template(file, context, required=True, render_filename=None):
 
 def apply_addons():
     # Apply dns service first and then recursively the rest.
-    if get_snap_config("enable-kube-dns") == "true":
-        dns_svc = os.path.join(addon_dir, "kube-dns.yaml")
+    dns_provider = get_snap_config("dns-provider")
+    if dns_provider in dns_providers:
+        dns_svc = os.path.join(addon_dir, dns_providers[dns_provider])
         args = ["apply",
                 "-f", dns_svc,
                 "-l", "cdk-addons=true",

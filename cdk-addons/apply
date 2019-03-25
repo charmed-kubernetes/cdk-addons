@@ -54,13 +54,19 @@ def render_templates():
         render_template("kube-dns.yaml", context)
         rendered = True
     if get_snap_config("enable-dashboard") == "true":
-        render_template("kubernetes-dashboard.yaml", context)
-        render_template("influxdb-grafana-controller.yaml", context)
-        render_template("influxdb-service.yaml", context)
-        render_template("grafana-service.yaml", context)
-        render_template("heapster-rbac.yaml", context)
-        render_template("heapster-controller.yaml", context)
-        render_template("heapster-service.yaml", context)
+        dash_context = context.copy()
+        dash_context['dashboard_auth'] = get_snap_config(
+            "dashboard-auth", required=False)
+        if not dash_context['dashboard_auth']:
+            # default to basic auth as it used to be hard-coded
+            dash_context['dashboard_auth'] = 'basic'
+        render_template("kubernetes-dashboard.yaml", dash_context)
+        render_template("influxdb-grafana-controller.yaml", dash_context)
+        render_template("influxdb-service.yaml", dash_context)
+        render_template("grafana-service.yaml", dash_context)
+        render_template("heapster-rbac.yaml", dash_context)
+        render_template("heapster-controller.yaml", dash_context)
+        render_template("heapster-service.yaml", dash_context)
         rendered = True
     if get_snap_config("enable-gpu", required=False) == "true":
         render_template("nvidia-device-plugin.yml", context)

@@ -54,6 +54,12 @@ def render_templates():
         render_template("kube-dns.yaml", context)
         rendered = True
     if get_snap_config("enable-dashboard") == "true":
+        dash_context = context.copy()
+        dash_context['dashboard_auth'] = get_snap_config(
+            "dashboard-auth", required=False)
+        if not dash_context['dashboard_auth']:
+            # default to basic auth as it used to be hard-coded
+            dash_context['dashboard_auth'] = 'basic'
         render_template("kubernetes-dashboard.yaml", context)
         render_template("influxdb-grafana-controller.yaml", context)
         render_template("influxdb-service.yaml", context)

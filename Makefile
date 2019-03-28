@@ -1,5 +1,7 @@
 KUBE_ARCH=amd64
-# need to jump to master to get 1.10.1 for CVE-2018-18264
+# ceph-csi can't go past this commit for k8s 1.12 because csi v1.0.0 is not
+# supported
+CEPH_CSI_COMMIT=088cfc553802f99fd22b919ff4e24910420dc8ce
 KUBE_DASHBOARD_VERSION=v1.10.1
 KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
@@ -8,7 +10,7 @@ BUILD=build
 
 default: clean
 	cp -r cdk-addons ${BUILD}
-	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} ./get-addon-templates
+	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} CEPH_CSI_COMMIT=${CEPH_CSI_COMMIT} ./get-addon-templates
 	mv templates ${BUILD}
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl
 	chmod +x ${BUILD}/kubectl

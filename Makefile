@@ -1,5 +1,7 @@
 KUBE_ARCH=amd64
-# need to jump to master to get 1.10.1 for CVE-2018-18264
+# Need upstream issue resolved before we can bump ceph-csi commit
+# https://github.com/ceph/ceph-csi/issues/278
+CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
 KUBE_DASHBOARD_VERSION=v1.10.1
 KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
@@ -8,7 +10,7 @@ BUILD=build
 
 default: clean
 	cp -r cdk-addons ${BUILD}
-	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} ./get-addon-templates
+	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} CEPH_CSI_COMMIT=${CEPH_CSI_COMMIT} ./get-addon-templates
 	mv templates ${BUILD}
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl
 	chmod +x ${BUILD}/kubectl

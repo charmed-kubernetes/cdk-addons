@@ -10,6 +10,7 @@ import tempfile
 import logging
 import yaml
 from contextlib import contextmanager
+from functools import partial
 
 
 description = """
@@ -22,10 +23,10 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 log = logging.getLogger(__name__)
 
 
-def run_with_logging(command):
+def run_with_logging(command, cwd=None):
     """ Run a command with controlled logging """
     log.debug("Running: %s" % command)
-    process = subprocess.Popen(command, stderr=subprocess.PIPE)
+    process = subprocess.Popen(command, cwd=cwd, stderr=subprocess.PIPE)
     stderr = process.communicate()[1].rstrip()
     process.wait()
     if process.returncode != 0:
@@ -35,77 +36,54 @@ def run_with_logging(command):
 
 
 @contextmanager
-def kubernetes_repo():
-    """ Yield a kubernetes repo to copy addons from. """
-    repo = "https://github.com/kubernetes/kubernetes.git"
-    branch = os.environ["KUBE_VERSION"]
-    log.info("Cloning %s with branch %s" % (repo, branch))
-    path = tempfile.mkdtemp(prefix="kubernetes")
+def cloned_repo(url, branch=None, commit=None):
+    log.info("Cloning %s%s%s" % (
+        url,
+        " branch " + branch if branch else "",
+        " commit " + commit if commit else ""
+    ))
+    path = tempfile.mkdtemp(prefix="cdk-addons-cloned-repo")
     try:
-        cmd = ["git", "clone", repo, path, "-b", branch, "--depth", "1",
-               "--single-branch"]
+        cmd = ["git", "clone", url, path]
+        if not commit:
+            cmd += ['--single-branch', '--depth', '1']
+        if branch:
+            cmd += ["-b", branch]
         run_with_logging(cmd)
+        if commit:
+            cmd = ["git", "checkout", commit]
+            run_with_logging(cmd, cwd=path)
         yield path
     finally:
         shutil.rmtree(path)
 
 
-@contextmanager
-def kubernetes_dashboard_repo():
-    """ Yield a kubernetes dashboard repo to copy yamls from. """
-    repo = "https://github.com/kubernetes/dashboard.git"
-    tag = os.environ["KUBE_DASHBOARD_VERSION"]
-    log.info("Cloning %s and moving to %s" % (repo, tag))
-    path = tempfile.mkdtemp(prefix="dashboard")
-    try:
-        cmd = ["git", "clone", repo, path, "-b", tag, "--depth", "1",
-               "--single-branch"]
-        run_with_logging(cmd)
-        yield path
-    finally:
-        shutil.rmtree(path)
+def repo_cloner(*args, **kwargs):
+    return partial(cloned_repo, *args, **kwargs)
 
 
-@contextmanager
-def nvidia_plugin_repo():
-    """ Yield a nvidia plugin repo to copy yaml from. """
-    repo = "https://github.com/NVIDIA/k8s-device-plugin.git"
-    log.info("Cloning %s" % (repo))
-    path = tempfile.mkdtemp(prefix="nvidia")
-    try:
-        cmd = ["git", "clone", repo, path, "--depth", "1"]
-        run_with_logging(cmd)
-        yield path
-    finally:
-        shutil.rmtree(path)
+kubernetes_repo = repo_cloner(
+    url="https://github.com/kubernetes/kubernetes.git",
+    branch=os.environ["KUBE_VERSION"]
+)
 
+kubernetes_dashboard_repo = repo_cloner(
+    url="https://github.com/kubernetes/dashboard.git",
+    branch=os.environ["KUBE_DASHBOARD_VERSION"]
+)
 
-@contextmanager
-def ceph_csi_repo():
-    """ Yield a ceph CSI repo from which to copy template yaml. """
-    repo = "http://github.com/ceph/ceph-csi.git"
-    log.info("Cloning %s" % (repo))
-    path = tempfile.mkdtemp(prefix="ceph")
-    try:
-        cmd = ["git", "clone", repo, path, "--depth", "1"]
-        run_with_logging(cmd)
-        yield path
-    finally:
-        shutil.rmtree(path)
+nvidia_plugin_repo = repo_cloner(
+    url="https://github.com/NVIDIA/k8s-device-plugin.git"
+)
 
+ceph_csi_repo = repo_cloner(
+    url="http://github.com/ceph/ceph-csi.git",
+    commit=os.environ["CEPH_CSI_COMMIT"]
+)
 
-@contextmanager
-def cloud_provider_openstack_repo():
-    """ Yield a cloud provider openstack repo from which to copy template yaml. """
-    repo = "https://github.com/kubernetes/cloud-provider-openstack.git"
-    log.info("Cloning %s" % (repo))
-    path = tempfile.mkdtemp(prefix="openstack")
-    try:
-        cmd = ["git", "clone", repo, path, "--depth", "1"]
-        run_with_logging(cmd)
-        yield path
-    finally:
-        shutil.rmtree(path)
+cloud_provider_openstack_repo = repo_cloner(
+    url="https://github.com/kubernetes/cloud-provider-openstack.git"
+)
 
 
 def add_addon(repo, source, dest, required=True, base='cluster/addons'):

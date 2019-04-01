@@ -203,6 +203,15 @@ def patch_metrics_reader(repo, file):
         yaml.dump_all(manifest, yaml_file, default_flow_style=False)
 
 
+def patch_keystone_secret(repo, file):
+    ''' Add the ca-file to the secret that has the client cert and
+    client key. This will get injected into the pod at
+    /etc/kubernetes/pki in the container. '''
+    source = os.path.join(repo, file)
+    with open(source, "a") as f:
+        f.write('{% if keystone_server_ca %}\n  ca-file: {{ keystone_server_ca }}\n{% endif %}\n')
+
+
 def patch_keystone_deployment(repo, file):
     source = os.path.join(repo, file)
     # :-/ Would be nice to be able to add this template a different way
@@ -211,9 +220,9 @@ def patch_keystone_deployment(repo, file):
     content = content.replace('image: k8scloudprovider/k8s-keystone-auth',
                               'image: {{ registry|default("k8scloudprovider") }}/k8s-keystone-auth') # noqa
     content = content.replace("            - --keystone-url",
-                              """{% if keystone_ssl_ca %}
-            - --keystone-ssl-ca
-            - {{ keystone_ssl_ca }}
+                              """{% if keystone_server_ca %}
+            - --keystone-ca-file
+            - /etc/kubernetes/pki/ca-file
 {% endif %}
             - --keystone-url""")
     with open(source, "w") as f:
@@ -292,9 +301,10 @@ def get_addon_templates():
 
     with cloud_provider_openstack_repo() as repo:
         log.info("Copying openstack tempates to " + dest)
-        add_addon(repo, "examples/webhook/keystone-auth-certs-secret.yaml", dest, base='.')
-
+        patch_keystone_secret(repo, "examples/webhook/keystone-auth-certs-secret.yaml")
         patch_keystone_deployment(repo, "examples/webhook/keystone-deployment.yaml")
+
+        add_addon(repo, "examples/webhook/keystone-auth-certs-secret.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-deployment.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-service.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-rbac.yaml", dest, base='.')

@@ -209,9 +209,12 @@ def patch_metrics_reader(repo, file):
 
 
 def patch_keystone_secret(repo, file):
+    ''' Add the ca-file to the secret that has the client cert and
+    client key. This will get injected into the pod at
+    /etc/kubernetes/pki in the container. '''
     source = os.path.join(repo, file)
     with open(source, "a") as f:
-        f.write('  ca-file: {{ keystone_ca_file }}\n')
+        f.write('{% if keystone_server_ca %}\n  ca-file: {{ keystone_server_ca }}\n{% endif %}\n')
 
 
 def patch_keystone_deployment(repo, file):
@@ -222,7 +225,7 @@ def patch_keystone_deployment(repo, file):
     content = content.replace('image: k8scloudprovider/k8s-keystone-auth',
                               'image: {{ registry|default("k8scloudprovider") }}/k8s-keystone-auth') # noqa
     content = content.replace("            - --keystone-url",
-                              """{% if keystone_ca_file %}
+                              """{% if keystone_server_ca %}
             - --keystone-ca-file
             - /etc/kubernetes/pki/ca-file
 {% endif %}

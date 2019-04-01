@@ -133,7 +133,7 @@ def render_templates():
                 base64.b64encode(image_file.read()).decode('utf-8')
         keystone_context['keystone_server_url'] = get_snap_config(
             "keystone-server-url", required=True)
-        keystone_context['keystone_ca_file'] = get_snap_config(
+        keystone_context['keystone_server_ca'] = get_snap_config(
             "keystone-server-ca", required=False).replace('\n', '')
 
         render_template("keystone-auth-certs-secret.yaml", keystone_context)

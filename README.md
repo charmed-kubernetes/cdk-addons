@@ -1,4 +1,4 @@
-# Canonical Distribution of Kubernetes Addons Snap
+# Charmed Distribution of Kubernetes Addons Snap
 
 To build the cdk-addons snap, run `make` here and check for the results in the current directory.
 

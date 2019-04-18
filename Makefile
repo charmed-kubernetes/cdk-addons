@@ -13,6 +13,7 @@ CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
 COREDNS_COMMIT=3ec05335204d92842edb288f10c715bc84333960
 KUBE_DASHBOARD_VERSION=v1.10.1
 
+.PHONY: prep
 prep: clean
 	cp -r cdk-addons ${BUILD}
 	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} CEPH_CSI_COMMIT=${CEPH_CSI_COMMIT} COREDNS_COMMIT=${COREDNS_COMMIT} ./get-addon-templates
@@ -30,7 +31,8 @@ default: prep
 
 upstream-images: prep
 	$(eval RAW_IMAGES := "$(foreach raw,${KUBE_ADDONS},$(shell grep -hoE 'image:.*${raw}.*' ./${BUILD}/templates/*.yaml | sort -u))")
-	@echo ${RAW_IMAGES} | sed -e 's|image: ||g' -e 's|{{ arch }}|${KUBE_ARCH}|g' -e 's|{{[^}]*}}|${KUBE_ADDONS_REGISTRY}|g'
+	$(eval UPSTREAM_IMAGES := $(shell echo ${RAW_IMAGES} | sed -e 's|image: ||g' -e 's|{{ arch }}|${KUBE_ARCH}|g' -e 's|{{[^}]*}}|${KUBE_ADDONS_REGISTRY}|g'))
+	@echo "${KUBE_VERSION}-upstream: ${UPSTREAM_IMAGES}"
 
 
 docker: clean

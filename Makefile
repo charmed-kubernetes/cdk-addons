@@ -2,7 +2,7 @@ BUILD=build
 KUBE_ADDONS=addon-resizer coredns defaultbackend heapster k8s-dns kubernetes-dashboard metrics-server
 KUBE_ADDONS_REGISTRY=k8s.gcr.io
 KUBE_ARCH=amd64
-KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable.txt)
+KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable-1.14.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)
 

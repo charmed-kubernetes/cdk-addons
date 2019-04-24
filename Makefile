@@ -13,13 +13,6 @@ CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
 COREDNS_COMMIT=3ec05335204d92842edb288f10c715bc84333960
 KUBE_DASHBOARD_VERSION=v1.10.1
 
-.PHONY: prep
-prep: clean
-	cp -r cdk-addons ${BUILD}
-	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} CEPH_CSI_COMMIT=${CEPH_CSI_COMMIT} COREDNS_COMMIT=${COREDNS_COMMIT} ./get-addon-templates
-	mv templates ${BUILD}
-
-
 default: prep
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl
 	chmod +x ${BUILD}/kubectl
@@ -28,6 +21,17 @@ default: prep
 	cd ${BUILD} && snapcraft
 	mv build/*.snap .
 
+clean:
+	@rm -rf ${BUILD} templates
+
+docker: clean
+	docker build -t cdk-addons-builder .
+	docker run --rm -v ${PWD}:/root/snap -w /root/snap -e SNAPCRAFT_SETUP_CORE=1 cdk-addons-builder make KUBE_VERSION=${KUBE_VERSION} KUBE_ARCH=${KUBE_ARCH}
+
+prep: clean
+	cp -r cdk-addons ${BUILD}
+	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} CEPH_CSI_COMMIT=${CEPH_CSI_COMMIT} COREDNS_COMMIT=${COREDNS_COMMIT} ./get-addon-templates
+	mv templates ${BUILD}
 
 upstream-images: prep
 	$(eval RAW_IMAGES := "$(foreach raw,${KUBE_ADDONS},$(shell grep -hoE 'image:.*${raw}.*' ./${BUILD}/templates/*.yaml | sort -u))")
@@ -35,10 +39,4 @@ upstream-images: prep
 	@echo "${KUBE_VERSION}-upstream: ${UPSTREAM_IMAGES}"
 
 
-docker: clean
-	docker build -t cdk-addons-builder .
-	docker run --rm -v ${PWD}:/root/snap -w /root/snap -e SNAPCRAFT_SETUP_CORE=1 cdk-addons-builder make KUBE_VERSION=${KUBE_VERSION} KUBE_ARCH=${KUBE_ARCH}
 
-
-clean:
-	@rm -rf ${BUILD} templates

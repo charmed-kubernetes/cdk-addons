@@ -11,6 +11,7 @@ import logging
 import yaml
 from contextlib import contextmanager
 from functools import partial
+from pathlib import Path
 
 
 description = """
@@ -234,6 +235,27 @@ def patch_keystone_deployment(repo, file):
         f.write(content)
 
 
+def patch_openstack_secret(repo, file):
+    """
+    Replace the hard-coded cloud.conf value with a template param.
+    """
+    source = Path(repo) / file
+    content = source.read_text()
+    content = re.sub(r'cloud.conf: .*', 'cloud.conf: {{ cloud_conf }}', content)
+    content += '{% if endpoint_ca_cert %}  endpoint-ca.cert: {{ endpoint_ca_cert }}\n{% endif %}'
+    source.write_text(content)
+
+
+def patch_openstack_ccm(repo, file):
+    source = Path(repo) / file
+    content = source.read_text()
+    content = content.replace('      nodeSelector:\n'
+                              '        node-role.kubernetes.io/master: ""\n', '')
+    content = content.replace('image: docker.io/k8scloudprovider/openstack-cloud-controller-manager',
+                              'image: {{ registry|default("k8scloudprovider") }}/openstack-cloud-controller-manager')
+    source.write_text(content)
+
+
 def patch_dashboard(repo, file):
     source = os.path.join(repo, file)
     with open(source, "r") as f:
@@ -325,13 +347,21 @@ def get_addon_templates():
 
     with cloud_provider_openstack_repo() as repo:
         log.info("Copying openstack tempates to " + dest)
-        patch_keystone_secret(repo, "examples/webhook/keystone-auth-certs-secret.yaml")
-        patch_keystone_deployment(repo, "examples/webhook/keystone-deployment.yaml")
+        patch_openstack_secret(repo, "manifests/controller-manager/cloud-config-secret.yaml")
+        patch_openstack_ccm(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
 
         add_addon(repo, "examples/webhook/keystone-auth-certs-secret.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-deployment.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-service.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-rbac.yaml", dest, base='.')
+
+        add_addon(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml", dest, base='.')
+        add_addon(repo, "manifests/controller-manager/cloud-config-secret.yaml", dest, base='.')
+
+        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin-rbac.yaml", dest, base='.')
+        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml", dest, base='.')
+        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin-rbac.yaml", dest, base='.')
+        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml", dest, base='.')
 
     with coredns_repo() as repo:
         log.info("Copying coredns template to " + dest)

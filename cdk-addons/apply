@@ -146,6 +146,23 @@ def render_templates():
         render_template("keystone-service.yaml", keystone_context)
         render_template("keystone-rbac.yaml", keystone_context)
         rendered = True
+    if get_snap_config("enable-openstack", required=False) == "true":
+        openstack_context = context.copy()
+        openstack_context.update({
+            "cloud_conf": get_snap_config("openstack-cloud-conf", required=True),
+            "endpoint_ca_cert": get_snap_config("openstack-endpoint-ca", required=False),
+        })
+
+        render_template("openstack-cloud-controller-manager-ds.yaml", openstack_context)
+        render_template("cloud-config-secret.yaml", openstack_context)
+
+        render_template("cinder-csi-controllerplugin-rbac.yaml", openstack_context)
+        render_template("cinder-csi-controllerplugin.yaml", openstack_context)
+        render_template("cinder-csi-nodeplugin-rbac.yaml", openstack_context)
+        render_template("cinder-csi-nodeplugin.yaml", openstack_context)
+        render_template("cinder-csi-storageclass.yaml", openstack_context)
+        rendered = True
+
     return rendered
 
 def render_template(file, context, required=True, render_filename=None):

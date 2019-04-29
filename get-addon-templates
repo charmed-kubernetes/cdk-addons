@@ -11,6 +11,7 @@ import logging
 import yaml
 from contextlib import contextmanager
 from functools import partial
+from pathlib import Path
 
 
 description = """
@@ -82,7 +83,8 @@ ceph_csi_repo = repo_cloner(
 )
 
 cloud_provider_openstack_repo = repo_cloner(
-    url="https://github.com/kubernetes/cloud-provider-openstack.git"
+    url="https://github.com/kubernetes/cloud-provider-openstack.git",
+    commit=os.environ["OPENSTACK_PROVIDER_COMMIT"]
 )
 
 coredns_repo = repo_cloner(
@@ -234,6 +236,45 @@ def patch_keystone_deployment(repo, file):
         f.write(content)
 
 
+def patch_openstack_secret(repo, file):
+    """
+    Replace the hard-coded cloud.conf value with a template param.
+    """
+    source = Path(repo) / file
+    content = source.read_text()
+    content = re.sub(r'cloud.conf: .*', 'cloud.conf: {{ cloud_conf }}', content)
+    content += '{% if endpoint_ca_cert %}  endpoint-ca.cert: {{ endpoint_ca_cert }}\n{% endif %}'
+    source.write_text(content)
+
+
+def patch_openstack_ccm(repo, file):
+    source = Path(repo) / file
+    content = source.read_text()
+    content = content.replace('      nodeSelector:\n'
+                              '        node-role.kubernetes.io/master: ""\n', '')
+    source.write_text(content)
+
+
+def patch_openstack_registries(repo, file):
+    source = Path(repo) / file
+    content = source.read_text()
+    content = content.replace('image: docker.io/k8scloudprovider/',
+                              'image: {{ registry|default("docker.io/k8scloudprovider") }}/')
+    content = content.replace('image: quay.io/k8scsi/',
+                              'image: {{ registry|default("quay.io/k8scsi") }}/')
+    source.write_text(content)
+
+
+def patch_cinder_sc(repo, file):
+    source = Path(repo) / file
+    content = yaml.load_all(source.read_text())
+    content = list(content)[0]  # we only want the first part; the storage class
+    if content['kind'] != 'StorageClass':
+        raise ValueError('Unexpected change to OpenStack Cinder CSI storage class example')
+    content['metadata']['name'] = 'cinder'
+    source.write_text(yaml.safe_dump(content))
+
+
 def patch_dashboard(repo, file):
     source = os.path.join(repo, file)
     with open(source, "r") as f:
@@ -332,6 +373,23 @@ def get_addon_templates():
         add_addon(repo, "examples/webhook/keystone-deployment.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-service.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-rbac.yaml", dest, base='.')
+
+        patch_openstack_secret(repo, "manifests/controller-manager/cloud-config-secret.yaml")
+        patch_openstack_ccm(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
+        patch_openstack_registries(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
+
+        add_addon(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml", dest, base='.')
+        add_addon(repo, "manifests/controller-manager/cloud-config-secret.yaml", dest, base='.')
+
+        patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml")
+        patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml")
+        patch_cinder_sc(repo, "examples/cinder-csi-plugin/nginx.yaml")
+
+        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin-rbac.yaml", dest, base='.')
+        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml", dest, base='.')
+        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin-rbac.yaml", dest, base='.')
+        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml", dest, base='.')
+        add_addon(repo, "examples/cinder-csi-plugin/nginx.yaml", os.path.join(dest, "cinder-csi-storageclass.yaml"), base='.')
 
     with coredns_repo() as repo:
         log.info("Copying coredns template to " + dest)

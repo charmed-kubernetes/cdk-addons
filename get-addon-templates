@@ -251,8 +251,16 @@ def patch_openstack_ccm(repo, file):
     content = source.read_text()
     content = content.replace('      nodeSelector:\n'
                               '        node-role.kubernetes.io/master: ""\n', '')
-    content = content.replace('image: docker.io/k8scloudprovider/openstack-cloud-controller-manager',
-                              'image: {{ registry|default("k8scloudprovider") }}/openstack-cloud-controller-manager')
+    source.write_text(content)
+
+
+def patch_openstack_registries(repo, file):
+    source = Path(repo) / file
+    content = source.read_text()
+    content = content.replace('image: docker.io/k8scloudprovider/',
+                              'image: {{ registry|default("docker.io/k8scloudprovider") }}/')
+    content = content.replace('image: quay.io/k8scsi/',
+                              'image: {{ registry|default("quay.io/k8scsi") }}/')
     source.write_text(content)
 
 
@@ -347,16 +355,23 @@ def get_addon_templates():
 
     with cloud_provider_openstack_repo() as repo:
         log.info("Copying openstack tempates to " + dest)
-        patch_openstack_secret(repo, "manifests/controller-manager/cloud-config-secret.yaml")
-        patch_openstack_ccm(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
+        patch_keystone_secret(repo, "examples/webhook/keystone-auth-certs-secret.yaml")
+        patch_keystone_deployment(repo, "examples/webhook/keystone-deployment.yaml")
 
         add_addon(repo, "examples/webhook/keystone-auth-certs-secret.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-deployment.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-service.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-rbac.yaml", dest, base='.')
 
+        patch_openstack_secret(repo, "manifests/controller-manager/cloud-config-secret.yaml")
+        patch_openstack_ccm(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
+        patch_openstack_registries(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
+
         add_addon(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml", dest, base='.')
         add_addon(repo, "manifests/controller-manager/cloud-config-secret.yaml", dest, base='.')
+
+        patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml")
+        patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml")
 
         add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin-rbac.yaml", dest, base='.')
         add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml", dest, base='.')

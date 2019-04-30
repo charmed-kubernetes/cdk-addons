@@ -267,7 +267,7 @@ def patch_openstack_registries(repo, file):
 def patch_cinder_sc(repo, file):
     source = Path(repo) / file
     content = yaml.load_all(source.read_text())
-    content = content[0]  # we only want the first part; the storage class
+    content = list(content)[0]  # we only want the first part; the storage class
     if content['kind'] != 'StorageClass':
         raise ValueError('Unexpected change to OpenStack Cinder CSI storage class example')
     content['metadata']['name'] = 'cinder'

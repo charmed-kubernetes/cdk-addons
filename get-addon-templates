@@ -83,7 +83,8 @@ ceph_csi_repo = repo_cloner(
 )
 
 cloud_provider_openstack_repo = repo_cloner(
-    url="https://github.com/kubernetes/cloud-provider-openstack.git"
+    url="https://github.com/kubernetes/cloud-provider-openstack.git",
+    commit=os.environ["OPENSTACK_PROVIDER_COMMIT"]
 )
 
 coredns_repo = repo_cloner(

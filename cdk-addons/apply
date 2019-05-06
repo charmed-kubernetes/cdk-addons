@@ -161,7 +161,8 @@ def render_template(file, context, required=True, render_filename=None):
     content = template.render(context)
 
     # apply cdk-addons=true label
-    data = [part for part in yaml.load_all(content) if part]
+    data = [part for part in yaml.load_all(content,
+                                           Loader=yaml.FullLoader) if part]
     for part in data:
         part["metadata"].setdefault("labels", {})
         part["metadata"]["labels"]["cdk-addons"] = "true"
@@ -205,7 +206,7 @@ def prune_addons():
         for filename in filenames:
             path = os.path.join(root, filename)
             with open(path) as f:
-                data = yaml.load_all(f)
+                data = yaml.load_all(f, Loader=yaml.FullLoader)
                 for part in data:
                     kind = part['kind']
                     # If no namespace is specified, it's either an unnamespaced

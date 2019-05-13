@@ -5,10 +5,11 @@ rm -rf "$SNAP_DATA/config"
 mkdir "$SNAP_DATA/config"
 
 for key in arch kubeconfig dns-domain enable-dashboard enable-kube-dns \
-		enable-metrics enable-gpu registry \
-		ceph-admin-key ceph-kubernetes-key ceph-mon-hosts ceph-pool-name \
-		default-storage enable-ceph enable-keystone keystone-server-url \
-		keystone-cert-file keystone-key-file keystone-server-ca \
-		dashboard-auth; do
-	snapctl get "$key" > "$SNAP_DATA/config/$key"
+           enable-metrics enable-gpu registry \
+           ceph-admin-key ceph-kubernetes-key ceph-mon-hosts ceph-pool-name \
+           default-storage enable-ceph enable-keystone keystone-server-url \
+           keystone-cert-file keystone-key-file keystone-server-ca \
+           dashboard-auth enable-openstack openstack-cloud-conf \
+           openstack-endpoint-ca; do
+    snapctl get "$key" > "$SNAP_DATA/config/$key"
 done

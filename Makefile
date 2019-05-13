@@ -10,6 +10,8 @@ PWD=$(shell pwd)
 # Need upstream issue resolved before we can bump ceph-csi commit
 # https://github.com/ceph/ceph-csi/issues/278
 CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
+# pin cloud-provider-openstack because it's under active dev
+OPENSTACK_PROVIDER_COMMIT=1b68bd85d5c6670a0b9aa0b7a4ef8934ef1b1eb9
 KUBE_DASHBOARD_VERSION=v1.10.1
 
 default: prep
@@ -29,7 +31,7 @@ docker: clean
 
 prep: clean
 	cp -r cdk-addons ${BUILD}
-	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} CEPH_CSI_COMMIT=${CEPH_CSI_COMMIT} ./get-addon-templates
+	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} CEPH_CSI_COMMIT=${CEPH_CSI_COMMIT} OPENSTACK_PROVIDER_COMMIT=${OPENSTACK_PROVIDER_COMMIT} ./get-addon-templates
 	mv templates ${BUILD}
 
 upstream-images: prep

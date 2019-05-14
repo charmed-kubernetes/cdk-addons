@@ -119,6 +119,9 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     content = re.sub(r"image:\s*nvidia/",
                      "image: {{ registry|default('nvidia') }}/",
                      content)
+    content = re.sub(r"image:\s*quay.io/",
+                     "image: {{ registry|default('quay.io') }}/",
+                     content)
     with open(dest, "w") as f:
         f.write(content)
 

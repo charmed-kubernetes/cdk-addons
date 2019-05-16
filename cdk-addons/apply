@@ -160,7 +160,16 @@ def render_templates():
         render_template("cinder-csi-controllerplugin.yaml", openstack_context)
         render_template("cinder-csi-nodeplugin-rbac.yaml", openstack_context)
         render_template("cinder-csi-nodeplugin.yaml", openstack_context)
-        render_template("cinder-csi-storageclass.yaml", openstack_context)
+        render_template("storageclass-openstack.yaml", openstack_context)
+        rendered = True
+    if get_snap_config("enable-aws", required=False) == "true":
+        render_template("storageclass-aws.yaml", context)
+        rendered = True
+    if get_snap_config("enable-azure", required=False) == "true":
+        render_template("storageclass-azure.yaml", context)
+        rendered = True
+    if get_snap_config("enable-gcp", required=False) == "true":
+        render_template("storageclass-gcp.yaml", context)
         rendered = True
 
     return rendered

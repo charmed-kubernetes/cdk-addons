@@ -268,16 +268,6 @@ def patch_openstack_registries(repo, file):
     source.write_text(content)
 
 
-def patch_cinder_sc(repo, file):
-    source = Path(repo) / file
-    content = yaml.load_all(source.read_text())
-    content = list(content)[0]  # we only want the first part; the storage class
-    if content['kind'] != 'StorageClass':
-        raise ValueError('Unexpected change to OpenStack Cinder CSI storage class example')
-    content['metadata']['name'] = 'cinder'
-    source.write_text(yaml.safe_dump(content))
-
-
 def patch_dashboard(repo, file):
     source = os.path.join(repo, file)
     with open(source, "r") as f:
@@ -386,18 +376,19 @@ def get_addon_templates():
 
         patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml")
         patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml")
-        patch_cinder_sc(repo, "examples/cinder-csi-plugin/nginx.yaml")
 
         add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin-rbac.yaml", dest, base='.')
         add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml", dest, base='.')
         add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin-rbac.yaml", dest, base='.')
         add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml", dest, base='.')
-        add_addon(repo, "examples/cinder-csi-plugin/nginx.yaml", os.path.join(dest, "cinder-csi-storageclass.yaml"), base='.')
 
     with coredns_repo() as repo:
         log.info("Copying coredns template to " + dest)
         patch_coredns(repo, "kubernetes/coredns.yaml.sed")
         add_addon(repo, "kubernetes/coredns.yaml.sed", dest + "/core-dns.yaml", base='.')
+
+    for template in Path('bundled-templates').iterdir():
+        shutil.copy2(template, dest)
 
 
 def parse_args():

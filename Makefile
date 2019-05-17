@@ -7,7 +7,10 @@ KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)
 
 ## Pin some addons to known-good versions
-# Need upstream issue resolved before we can bump ceph-csi commit
+# NB: If we lock images to commits/versions, this could affect the image
+# version matching in ./get-addon-templates. Be careful here, and verify
+# any images we need based on commit are matched/substituted correctly.
+# NB Ceph: Need upstream issue resolved before we can bump ceph-csi commit
 # https://github.com/ceph/ceph-csi/issues/278
 CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
 COREDNS_COMMIT=3ec05335204d92842edb288f10c715bc84333960

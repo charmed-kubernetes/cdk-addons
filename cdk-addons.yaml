@@ -6,7 +6,6 @@ description: |
   Addons for the Canonical Distribution of Kubernetes
 grade: stable
 confinement: strict
-base: core18
 apps:
   apply:
     command: apply

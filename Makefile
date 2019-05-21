@@ -23,7 +23,7 @@ default: prep
 	chmod +x ${BUILD}/kubectl
 	sed 's/KUBE_VERSION/${KUBE_ERSION}/g' cdk-addons.yaml > ${BUILD}/snapcraft.yaml
 	sed -i "s/KUBE_ARCH/${KUBE_ARCH}/g" ${BUILD}/snapcraft.yaml
-	cd ${BUILD} && snapcraft cleanbuild
+	cd ${BUILD} && snapcraft build
 	mv build/*.snap .
 
 clean:

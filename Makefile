@@ -20,7 +20,9 @@ default: prep
 	chmod +x ${BUILD}/kubectl
 	sed 's/KUBE_VERSION/${KUBE_ERSION}/g' cdk-addons.yaml > ${BUILD}/snapcraft.yaml
 	sed -i "s/KUBE_ARCH/${KUBE_ARCH}/g" ${BUILD}/snapcraft.yaml
-	cd ${BUILD} && snapcraft cleanbuild
+# NB: do not call cleanbuild as jenkins cannot run the confined lxd snap from /var/lib/jenkins.
+# Generic build is safe here as the snap doesnt build anything, hence cant be polluted from the host.
+	cd ${BUILD} && snapcraft
 	mv build/*.snap .
 
 clean:

@@ -171,6 +171,9 @@ def render_templates():
     if get_snap_config("enable-gcp", required=False) == "true":
         render_template("storageclass-gcp.yaml", context)
         rendered = True
+    if get_snap_config("enable-multus-cni", required=False) == "true":
+        render_template("multus-daemonset.yaml", context)
+        rendered = True
 
     return rendered
 

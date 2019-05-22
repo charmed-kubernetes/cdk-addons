@@ -92,6 +92,11 @@ coredns_repo = repo_cloner(
     commit=os.environ["COREDNS_COMMIT"]
 )
 
+multus_cni_repo = repo_cloner(
+    url="https://github.com/intel/multus-cni.git",
+    commit=os.environ["MULTUS_CNI_COMMIT"]
+)
+
 
 def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     """ Add an addon template from the given repo and source.
@@ -387,6 +392,10 @@ def get_addon_templates():
         log.info("Copying coredns template to " + dest)
         patch_coredns(repo, "kubernetes/coredns.yaml.sed")
         add_addon(repo, "kubernetes/coredns.yaml.sed", dest + "/core-dns.yaml", base='.')
+
+    with multus_cni_repo() as repo:
+        log.info("Copying Multis CNI template to " + dest)
+        add_addon(repo, "images/multus-daemonset.yml", dest + "/multus-daemonset.yaml", base='.')
 
     for template in Path('bundled-templates').iterdir():
         shutil.copy2(template, dest)

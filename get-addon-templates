@@ -118,13 +118,13 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     )
     # Make sure images come from the configured registry (or use the default)
     content = re.sub(r"image:\s*cdkbot/",
-                     "image: {{ registry|default('cdkbot') }}/",
+                     "image: {{ registry|default('docker.io') }}/cdkbot/",
                      content)
     content = re.sub(r"image:\s*k8s.gcr.io/",
                      "image: {{ registry|default('k8s.gcr.io') }}/",
                      content)
     content = re.sub(r"image:\s*nvidia/",
-                     "image: {{ registry|default('nvidia') }}/",
+                     "image: {{ registry|default('docker.io') }}/nvidia/",
                      content)
     content = re.sub(r"image:\s*quay.io/",
                      "image: {{ registry|default('quay.io') }}/",

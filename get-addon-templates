@@ -183,6 +183,16 @@ def patch_heapster_controller(repo, file):
         f.write(content)
 
 
+def patch_influxdb_grafana(repo, file):
+    source = os.path.join(repo, 'cluster/addons', file)
+    with open(source, "r") as f:
+        content = f.read()
+    # LP 1822761: bump default influxdb container memory
+    content = content.replace("memory: 500M", "memory: 800M")
+    with open(source, "w") as f:
+        f.write(content)
+
+
 def patch_metrics_server(repo, file):
     # nuke GKE specific stuff
     source = os.path.join(repo, 'cluster/addons', file)
@@ -289,6 +299,7 @@ def get_addon_templates():
         patch_heapster_controller(repo, influxdb + "/heapster-controller.yaml")
         add_addon(repo, influxdb + "/heapster-controller.yaml", dest)
         add_addon(repo, influxdb + "/heapster-service.yaml", dest)
+        patch_influxdb_grafana(repo, influxdb + "/influxdb-grafana-controller.yaml")
         add_addon(repo, influxdb + "/influxdb-grafana-controller.yaml", dest)
         add_addon(repo, influxdb + "/influxdb-service.yaml", dest)
 

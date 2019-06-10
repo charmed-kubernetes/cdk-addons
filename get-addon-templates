@@ -237,8 +237,8 @@ def patch_keystone_deployment(repo, file):
     # :-/ Would be nice to be able to add this template a different way
     with open(source, "r") as f:
         content = f.read()
-    content = content.replace('image: k8scloudprovider/k8s-keystone-auth',
-                              'image: {{ registry|default("k8scloudprovider") }}/k8s-keystone-auth') # noqa
+    content = content.replace("image: k8scloudprovider/k8s-keystone-auth",
+                              "image: {{ registry|default('docker.io') }}/k8scloudprovider/k8s-keystone-auth")
     content = content.replace("            - --keystone-url",
                               """{% if keystone_server_ca %}
             - --keystone-ca-file
@@ -271,10 +271,10 @@ def patch_openstack_ccm(repo, file):
 def patch_openstack_registries(repo, file):
     source = Path(repo) / file
     content = source.read_text()
-    content = content.replace('image: docker.io/k8scloudprovider/',
-                              'image: {{ registry|default("docker.io/k8scloudprovider") }}/')
-    content = content.replace('image: quay.io/k8scsi/',
-                              'image: {{ registry|default("quay.io/k8scsi") }}/')
+    content = content.replace("image: docker.io/k8scloudprovider/",
+                              "image: {{ registry|default('docker.io') }}/k8scloudprovider/")
+    content = content.replace("image: quay.io/k8scsi/",
+                              "image: {{ registry|default('quay.io') }}/k8scsi/")
     source.write_text(content)
 
 

@@ -1,6 +1,4 @@
 BUILD=build
-KUBE_ADDONS=addon-resizer defaultbackend heapster k8s-dns kubernetes-dashboard metrics-server
-KUBE_ADDONS_REGISTRY=k8s.gcr.io
 KUBE_ARCH=amd64
 KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable-1.13.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
@@ -37,8 +35,9 @@ prep: clean
 	mv templates ${BUILD}
 
 upstream-images: prep
-	$(eval RAW_IMAGES := "$(foreach raw,${KUBE_ADDONS},$(shell grep -hoE 'image:.*${raw}.*' ./${BUILD}/templates/*.yaml | sort -u))")
-	$(eval UPSTREAM_IMAGES := $(shell echo ${RAW_IMAGES} | sed -e 's|image: ||g' -e 's|{{ arch }}|${KUBE_ARCH}|g' -e 's|{{[^}]*}}|${KUBE_ADDONS_REGISTRY}|g'))
+	$(eval RAW_IMAGES := "$(shell grep -hoE 'image:.*' ./${BUILD}/templates/* | sort -u)")
+# NB: sed cleans up image prefix/arch/quotes and matches '{{ registry|default('k8s.gcr.io') }}/foo-{{ bar }}:latest', replacing the first {{..}} with the specified default registry
+	$(eval UPSTREAM_IMAGES := $(shell echo ${RAW_IMAGES} | sed -E -e "s/image: //g" -e "s/\{\{ arch }}/${KUBE_ARCH}/g" -e "s/\{\{ registry\|default\(([^}]*)\) }}/\1/g" -e "s/['\"]//g"))
 	@echo "${KUBE_VERSION}-upstream: ${UPSTREAM_IMAGES}"
 
 

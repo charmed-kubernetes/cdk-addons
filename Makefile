@@ -1,5 +1,4 @@
 BUILD=build
-KUBE_ADDONS=addon-resizer coredns csi-attacher csi-node-driver-registrar csi-provisioner csi-snapshotter defaultbackend heapster k8s-dns k8s-keystone-auth kubernetes-dashboard metrics-server rbdplugin
 KUBE_ARCH=amd64
 KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
@@ -40,7 +39,7 @@ prep: clean
 	mv templates ${BUILD}
 
 upstream-images: prep
-	$(eval RAW_IMAGES := "$(foreach raw,${KUBE_ADDONS},$(shell grep -hoE 'image:.*${raw}.*' ./${BUILD}/templates/*.yaml | sort -u))")
+	$(eval RAW_IMAGES := "$(shell grep -hoE 'image:.*' ./${BUILD}/templates/* | sort -u)")
 # NB: sed cleans up image prefix/arch/quotes and matches '{{ registry|default('k8s.gcr.io') }}/foo-{{ bar }}:latest', replacing the first {{..}} with the specified default registry
 	$(eval UPSTREAM_IMAGES := $(shell echo ${RAW_IMAGES} | sed -E -e "s/image: //g" -e "s/\{\{ arch }}/${KUBE_ARCH}/g" -e "s/\{\{ registry\|default\(([^}]*)\) }}/\1/g" -e "s/['\"]//g"))
 	@echo "${KUBE_VERSION}-upstream: ${UPSTREAM_IMAGES}"

@@ -30,7 +30,8 @@ def render_templates():
         "arch": get_snap_config("arch"),
         "pillar": {
             "dns_domain": get_snap_config("dns-domain"),
-            "num_nodes": node_count
+            "num_nodes": node_count,
+            "dns_memory_limit": "170Mi"
         },
         # nanny_memory for heapster
         # formula from https://github.com/kubernetes/kubernetes/blob/v1.9.6/cluster/addons/cluster-monitoring/influxdb/heapster-controller.yaml#L11

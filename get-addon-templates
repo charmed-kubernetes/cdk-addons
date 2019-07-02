@@ -302,8 +302,9 @@ def patch_coredns(repo, file):
     # will stay the same on its own.
     content = content.replace("clusterIP: CLUSTER_DNS_IP", "#clusterIP: CLUSTER_DNS_IP")
     # Make sure we're on CoreDNS 1.5.1.
-    content = content.replace("image: coredns/coredns:1.5.0",
-                              "image: {{ registry|default('docker.io') }}/coredns/coredns:1.5.1")
+    content = content.replace(
+        "image: coredns/coredns:1.5.0",
+        "image: {{ registry|default('docker.io') }}/coredns/coredns{{ multiarch_workaround }}:1.5.1")
     with open(source, "w") as f:
         f.write(content)
 

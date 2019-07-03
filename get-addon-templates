@@ -199,12 +199,15 @@ def patch_influxdb_grafana(repo, file):
 
 
 def patch_metrics_server(repo, file):
-    # nuke GKE specific stuff
     source = os.path.join(repo, 'cluster/addons', file)
     with open(source, "r") as f:
         content = f.read()
+    # nuke GKE specific stuff
     content = content.replace("- --kubelet-port=10255", "# - --kubelet-port=10255")
     content = content.replace("- --deprecated-kubelet-completely-insecure=true", "# - --deprecated-kubelet-completely-insecure=true")
+    # use v0.3.2 until latest (0.3.3) images are available for alt arches, eg:
+    # https://console.cloud.google.com/gcr/images/google-containers/GLOBAL/metrics-server-s390x?gcrImageListsize=30
+    content = content.replace("v0.3.3", "v0.3.2")
     with open(source, "w") as f:
         f.write(content)
 

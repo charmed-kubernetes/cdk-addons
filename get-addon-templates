@@ -311,7 +311,7 @@ def patch_coredns(repo, file):
 
 
 def patch_kubedns(repo, file):
-    source = os.path.join(repo, file)
+    source = os.path.join(repo, 'cluster/addons', file)
     with open(source, "r") as f:
         content = f.read()
     # Inject our hacky multiarch workaround until our registry supports fat manifests:
@@ -337,8 +337,9 @@ def get_addon_templates():
     with kubernetes_repo() as repo:
         log.info("Copying addons to " + dest)
 
-        patch_kubedns(repo, "dns/kube-dns/kube-dns.yaml.in")
-        add_addon(repo, "dns/kube-dns/kube-dns.yaml.in", dest + "/kube-dns.yaml")
+        kubedns = "dns/kube-dns"
+        patch_kubedns(repo, kubedns + "/kube-dns.yaml.in")
+        add_addon(repo, kubedns + "/kube-dns.yaml.in", dest + "/kube-dns.yaml")
 
         influxdb = "cluster-monitoring/influxdb"
         add_addon(repo, influxdb + "/grafana-service.yaml", dest)

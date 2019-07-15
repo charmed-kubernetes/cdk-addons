@@ -203,6 +203,8 @@ def render_template(file, context, required=True, render_filename=None):
     for part in data:
         part["metadata"].setdefault("labels", {})
         part["metadata"]["labels"]["cdk-addons"] = "true"
+        if part["kind"] in ["Deployment", "DaemonSet", "StatefulSet"]:
+           part["metadata"]["labels"]["cdk-restart-on-ca-change"] = "true"
     content = yaml.dump_all(data)
 
     with open(dest, "w") as f:

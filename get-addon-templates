@@ -207,7 +207,8 @@ def patch_metrics_server(repo, file):
     content = content.replace("- --deprecated-kubelet-completely-insecure=true", "# - --deprecated-kubelet-completely-insecure=true")
     # use v0.3.2 until latest (0.3.3) images are available for alt arches, eg:
     # https://console.cloud.google.com/gcr/images/google-containers/GLOBAL/metrics-server-s390x?gcrImageListsize=30
-    content = content.replace("v0.3.3", "v0.3.2")
+    if os.environ['KUBE_ARCH'] != 'amd64':
+        content = content.replace("v0.3.3", "v0.3.2")
     with open(source, "w") as f:
         f.write(content)
 

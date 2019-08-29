@@ -332,6 +332,26 @@ def patch_kubedns(repo, file):
         f.write(content)
 
 
+def patch_for_1_16(repo, file, selector):
+    source = os.path.join(repo, file)
+    with open(source) as stream:
+        manifest = list(yaml.load_all(stream))
+    for doc in manifest:
+        if doc['kind'] == 'Deployment' or \
+           doc['kind'] == 'StatefulSet' or \
+           doc['kind'] == 'DaemonSet':
+            doc['apiVersion'] = 'apps/v1'
+            if 'selector' not in doc['spec']:
+                doc['spec']['selector'] = {}
+            doc['spec']['selector']['matchLabels'] = selector
+        elif doc['kind'] == 'NetworkPolicy':
+            doc['apiVersion'] = 'networking.k8s.io/v1'
+        elif doc['kind'] == 'PodSecurityPolicy':
+            doc['apiVersion'] = 'policy/v1beta1'
+    with open(source, "w") as yaml_file:
+        yaml.dump_all(manifest, yaml_file, default_flow_style=False)
+
+
 def get_addon_templates():
     """ Get addon templates. This will clone the kubernetes repo from upstream
     and copy addons to ./templates """
@@ -375,10 +395,14 @@ def get_addon_templates():
     with nvidia_plugin_repo() as repo:
         log.info("Copying nvidia plugin to " + dest)
         patch_plugin_manifest(repo, "nvidia-device-plugin.yml")
+        patch_for_1_16(repo, "nvidia-device-plugin.yml", {"name": "nvidia-device-plugin-ds"})
         add_addon(repo, "nvidia-device-plugin.yml", dest, base='.')
 
     with ceph_csi_repo() as repo:
         log.info("Copying ceph CSI templates to " + dest)
+        patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", {"app": "csi-rbdplugin-provisioner"})
+        patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin-attacher.yaml", {"app": "csi-rbdplugin-attacher"})
+        patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", {"app": "csi-rbdplugin"})
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-attacher.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", dest, base='.')

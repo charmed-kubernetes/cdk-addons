@@ -18,7 +18,10 @@ dns_providers = {
 }
 
 # Known registries that do not support multi-arch image manifests.
-single_arch_registries = ['image-registry.canonical.com']
+single_arch_registries = [
+    'image-registry.canonical.com',
+    'rocks.canonical.com',
+]
 
 def main():
     if render_templates():

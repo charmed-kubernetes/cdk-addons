@@ -449,7 +449,7 @@ def get_addon_templates():
         add_addon(repo, "kubernetes/coredns.yaml.sed", dest + "/core-dns.yaml", base='.')
 
     for template in Path('bundled-templates').iterdir():
-        shutil.copy2(template, dest)
+        shutil.copy2(str(template), dest)
 
 
 def parse_args():

@@ -147,30 +147,21 @@ def patch_plugin_manifest(repo, file):
 def patch_ceph_secret(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
-        manifest = yaml.safe_load(stream)
-    manifest['stringData']['userID'] = 'admin'
-    del manifest['stringData']['userKey']
-    manifest.setdefault('data', {})['userKey'] = '{{ admin_key }}'
+        manifest = yaml.load(stream)
+    manifest['data']['admin'] = "{{ admin_key }}"
+    manifest['data']['kubernetes'] = "{{ kubernetes_key }}"
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
-
-
-def patch_ceph_config_map(repo, file):
-    source = os.path.join(repo, file)
-    with open(source) as f:
-        content = f.read()
-    content = content.replace("    []", "    {{ ceph_csi_config_data }}")
-    with open(source, 'w') as f:
-        f.write(content)
 
 
 def patch_ceph_storage_class(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
         manifest = yaml.load(stream)
-    manifest['parameters']['clusterID'] = 'charmed-kubernetes'
+    manifest['parameters']['monitors'] = "{{ mon_hosts }}"
     manifest['parameters']['pool'] = "{{ pool_name }}"
     manifest['parameters']['fsType'] = "{{ fs_type }}"
+    manifest['parameters']['userid'] = "admin"
     manifest['metadata']['name'] = "{{ sc_name }}"
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
@@ -408,19 +399,21 @@ def get_addon_templates():
 
     with ceph_csi_repo() as repo:
         log.info("Copying ceph CSI templates to " + dest)
+        patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", {"app": "csi-rbdplugin-provisioner"})
+        patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin-attacher.yaml", {"app": "csi-rbdplugin-attacher"})
+        patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", {"app": "csi-rbdplugin"})
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-attacher.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", dest, base='.')
 
         patch_ceph_secret(repo, "examples/rbd/secret.yaml")
         add_addon(repo, "examples/rbd/secret.yaml", os.path.join(dest, "ceph-secret.yaml"), base='.')
 
-        patch_ceph_config_map(repo, 'deploy/rbd/kubernetes/csi-config-map.yaml')
-        add_addon(repo, "deploy/rbd/kubernetes/csi-config-map.yaml", dest, base='.')
-
         patch_ceph_storage_class(repo, "examples/rbd/storageclass.yaml")
         add_addon(repo, "examples/rbd/storageclass.yaml", os.path.join(dest, "ceph-storageclass.yaml"), base='.')
 
         # rbac templates
+        add_addon(repo, "deploy/rbd/kubernetes/csi-attacher-rbac.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-provisioner-rbac.yaml", dest, base='.')
 

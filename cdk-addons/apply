@@ -54,7 +54,7 @@ def render_templates():
         "base_metrics_server_memory": "40Mi",
         "metrics_server_memory_per_node": "4",
         "metrics_server_min_cluster_size": "16",
-        "monitorstorage": get_snap_config("monitorstorage")
+        "monitorstorage": get_snap_config("monitorstorage"),
 
         # may need to hack image names if our registry doesn't support multi-arch images
         "multiarch_workaround": ""

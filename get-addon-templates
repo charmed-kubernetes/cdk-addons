@@ -278,6 +278,11 @@ def patch_openstack_ccm(repo, file):
     content = source.read_text()
     content = content.replace('      nodeSelector:\n'
                               '        node-role.kubernetes.io/master: ""\n', '')
+    content = content.replace('          args:\n'
+                              '            - /bin/openstack-cloud-controller-manager\n',
+                              '          args:\n'
+                              '            - /bin/openstack-cloud-controller-manager\n'
+                              '            - --cluster-name={{ cluster_tag }}\n')
     source.write_text(content)
 
 

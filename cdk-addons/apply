@@ -54,6 +54,7 @@ def render_templates():
         "base_metrics_server_memory": "40Mi",
         "metrics_server_memory_per_node": "4",
         "metrics_server_min_cluster_size": "16",
+        "monitorstorage": get_snap_config("monitorstorage"),
 
         # may need to hack image names if our registry doesn't support multi-arch images
         "multiarch_workaround": ""
@@ -81,7 +82,12 @@ def render_templates():
             # default to basic auth as it used to be hard-coded
             dash_context['dashboard_auth'] = 'basic'
         render_template("kubernetes-dashboard.yaml", dash_context)
-        render_template("influxdb-grafana-controller.yaml", dash_context)
+        # monitorstorage
+        dash_ig_context = dash_context.copy()
+        dash_ig_context['monitorstorage'] = list(yaml.load_all(dash_ig_context['monitorstorage']))[0]
+        dash_ig_context['monitorstorage']['influxdb'] = yaml.dump(dash_ig_context['monitorstorage']['influxdb'])
+        dash_ig_context['monitorstorage']['grafana'] = yaml.dump(dash_ig_context['monitorstorage']['grafana'])
+        render_template("influxdb-grafana-controller.yaml", dash_ig_context)
         render_template("influxdb-service.yaml", dash_context)
         render_template("grafana-service.yaml", dash_context)
         render_template("heapster-rbac.yaml", dash_context)

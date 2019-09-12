@@ -42,7 +42,14 @@ def render_templates():
         "base_metrics_server_cpu": "40m",
         "base_metrics_server_memory": "40Mi",
         "metrics_server_memory_per_node": "4",
-        "metrics_server_min_cluster_size": "16"
+        "metrics_server_min_cluster_size": "16",
+        "monitorstorage": get_snap_config("monitorstorage"),
+
+        # may need to hack image names if our registry doesn't support multi-arch images
+        "multiarch_workaround": "",
+
+        # let addons know what we're calling our cluster
+        "cluster_tag": get_snap_config("cluster-tag", required=False),
     }
 
     registry = get_snap_config("registry", required=False)

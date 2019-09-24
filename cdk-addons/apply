@@ -212,13 +212,21 @@ def render_template(file, context, required=True, render_filename=None):
         template = Template(f.read())
     content = template.render(context)
 
-    # apply cdk-addons=true label
-    data = [part for part in yaml.load_all(content) if part]
-    for part in data:
+    def _add_labels(part):
         part["metadata"].setdefault("labels", {})
         part["metadata"]["labels"]["cdk-addons"] = "true"
         if part["kind"] in ["Deployment", "DaemonSet", "StatefulSet"]:
-           part["metadata"]["labels"]["cdk-restart-on-ca-change"] = "true"
+            part["metadata"]["labels"]["cdk-restart-on-ca-change"] = "true"
+
+    # apply cdk-addons=true label
+    data = [part for part in yaml.load_all(content) if part]
+    for part in data:
+        if part['kind'] == 'List':
+            # some files use kind:List rather than a set of YAML parts
+            for item in part['items']:
+                _add_labels(item)
+        else:
+            _add_labels(part)
     content = yaml.dump_all(data)
 
     with open(dest, "w") as f:

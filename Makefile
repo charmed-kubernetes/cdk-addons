@@ -14,7 +14,7 @@ CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
 COREDNS_COMMIT=8fb8871a309cc77baaef27f5b227ec0e546daf0c
 # pin cloud-provider-openstack because it's under active dev
 OPENSTACK_PROVIDER_COMMIT=1b68bd85d5c6670a0b9aa0b7a4ef8934ef1b1eb9
-KUBE_DASHBOARD_VERSION=v1.10.1
+KUBE_DASHBOARD_VERSION=v2.0.0-beta4
 
 default: prep
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl

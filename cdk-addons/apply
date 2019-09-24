@@ -177,6 +177,8 @@ def render_templates():
             "endpoint_ca_cert": get_snap_config("openstack-endpoint-ca", required=False),
         })
 
+        render_template("cloud-controller-manager-roles.yaml", openstack_context)
+        render_template("cloud-controller-manager-role-bindings.yaml", openstack_context)
         render_template("openstack-cloud-controller-manager-ds.yaml", openstack_context)
         render_template("cloud-config-secret.yaml", openstack_context)
 
@@ -253,6 +255,17 @@ def prune_addons():
     Instead of using that, we just have to do it ourselves.
     '''
     current_addons = set()
+
+    def _include_addon(part):
+        kind = part['kind']
+        # If no namespace is specified, it's either an unnamespaced
+        # resource, or a namespaced resource that will end up in
+        # 'default'. We can delete both in the same way so we may
+        # as well put them in the same bucket.
+        namespace = part['metadata'].get('namespace', 'default')
+        name = part['metadata']['name']
+        current_addons.add((kind, namespace, name))
+
     for root, _, filenames in os.walk(addon_dir):
         for filename in filenames:
             path = os.path.join(root, filename)
@@ -260,13 +273,13 @@ def prune_addons():
                 data = yaml.load_all(f)
                 for part in data:
                     kind = part['kind']
-                    # If no namespace is specified, it's either an unnamespaced
-                    # resource, or a namespaced resource that will end up in
-                    # 'default'. We can delete both in the same way so we may
-                    # as well put them in the same bucket.
-                    namespace = part['metadata'].get('namespace', 'default')
-                    name = part['metadata']['name']
-                    current_addons.add((kind, namespace, name))
+                    if kind == 'List':
+                        # yaml is a single kind:List instead of joined yaml parts
+                        for item in part['items']:
+                            _include_addon(item)
+                    else:
+                        # yaml is a set of joined parts
+                        _include_addon(part)
 
     output = kubectl(
         'get',

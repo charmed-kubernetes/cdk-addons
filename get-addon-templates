@@ -445,6 +445,8 @@ def get_addon_templates():
 
         add_addon(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml", dest, base='.')
         add_addon(repo, "manifests/controller-manager/cloud-config-secret.yaml", dest, base='.')
+        add_addon(repo, "cluster/addons/rbac/cloud-controller-manager-role-bindings.yaml", dest, base='.')
+        add_addon(repo, "cluster/addons/rbac/cloud-controller-manager-roles.yaml", dest, base='.')
 
         patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml")
         patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml")

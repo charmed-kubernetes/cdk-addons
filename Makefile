@@ -10,7 +10,7 @@ PWD=$(shell pwd)
 CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
 COREDNS_COMMIT=3ec05335204d92842edb288f10c715bc84333960
 # pin cloud-provider-openstack because it's under active dev
-OPENSTACK_PROVIDER_COMMIT=1b68bd85d5c6670a0b9aa0b7a4ef8934ef1b1eb9
+OPENSTACK_PROVIDER_COMMIT=release-1.14
 KUBE_DASHBOARD_VERSION=v1.10.1
 
 default: prep
@@ -40,6 +40,3 @@ upstream-images: prep
 # NB: sed cleans up image prefix, quotes, and matches '{{ registry|default('k8s.gcr.io') }}/foo-{{ bar }}:latest', replacing the first {{..}} with the specified default registry
 	$(eval UPSTREAM_IMAGES := $(shell echo ${RAW_IMAGES} | sed -E -e "s/image: //g" -e "s/\{\{ registry\|default\(([^}]*)\) }}/\1/g" -e "s/['\"]//g"))
 	@echo "${KUBE_VERSION}-upstream: ${UPSTREAM_IMAGES}"
-
-
-

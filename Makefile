@@ -10,7 +10,7 @@ PWD=$(shell pwd)
 CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
 COREDNS_COMMIT=3ec05335204d92842edb288f10c715bc84333960
 # pin cloud-provider-openstack because it's under active dev
-OPENSTACK_PROVIDER_COMMIT=release-1.14
+OPENSTACK_PROVIDER_COMMIT=release-1.15
 KUBE_DASHBOARD_VERSION=v1.10.1
 
 default: prep

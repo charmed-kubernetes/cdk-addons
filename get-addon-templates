@@ -193,7 +193,7 @@ def patch_influxdb_grafana(repo, file):
     with open(source, "r") as f:
         content = f.read()
     # LP 1822761: bump default influxdb container memory
-    content = content.replace("memory: 500M", "memory: 800M")
+    content = content.replace("memory: 500M", "memory: 1100M")
     with open(source, "w") as f:
         f.write(content)
 

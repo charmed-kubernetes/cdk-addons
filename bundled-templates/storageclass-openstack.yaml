@@ -5,4 +5,3 @@ metadata:
   annotations:
     juju.io/workload-storage: "true"
 provisioner: csi-cinderplugin
-parameters: {}

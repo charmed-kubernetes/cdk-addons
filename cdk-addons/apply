@@ -107,6 +107,10 @@ def render_templates():
         render_template("metrics-server-deployment.yaml", context)
         render_template("metrics-server-service.yaml", context)
         render_template("resource-reader.yaml", context)
+        kube_state_templates = ["cluster-role-binding", "cluster-role", "deployment",
+                                "service-account", "service"]
+        for t in kube_state_templates:
+            render_template("kube-state-metrics-{}.yaml".format(t), context)
         rendered = True
     if get_snap_config("enable-ceph", required=False) == "true":
         ceph_context = context.copy()

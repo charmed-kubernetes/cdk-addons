@@ -195,7 +195,7 @@ def render_templates():
         render_template("storageclass-azure.yaml", context)
         rendered = True
     if get_snap_config("enable-gcp", required=False) == "true":
-        render_template("storageclass-gcp.yaml", context)
+        render_template("storageclass-gce.yaml", context)
         rendered = True
 
     return rendered

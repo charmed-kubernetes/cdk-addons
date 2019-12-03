@@ -11,7 +11,7 @@ PWD=$(shell pwd)
 # NB Ceph: Need upstream issue resolved before we can bump ceph-csi commit
 # https://github.com/ceph/ceph-csi/issues/278
 CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
-COREDNS_COMMIT=8fb8871a309cc77baaef27f5b227ec0e546daf0c
+COREDNS_COMMIT=50982715688fb0cb601f2da5e1f2c695a440a222
 # pin cloud-provider-openstack because it's under active dev
 OPENSTACK_PROVIDER_COMMIT=release-1.15
 KUBE_DASHBOARD_VERSION=v2.0.0-beta4

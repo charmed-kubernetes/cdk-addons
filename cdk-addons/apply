@@ -46,10 +46,6 @@ def render_templates():
         "metrics_server_memory_per_node": "4",
         "metrics_server_min_cluster_size": "16",
 
-        # TODO: with removal of ./addons/cluster-monitoring, this is no longer used.
-        # Decide if we should remove monitorstorage support from here and k8s-master.
-        "monitorstorage": get_snap_config("monitorstorage"),
-
         # may need to hack image names if our registry doesn't support multi-arch images
         "multiarch_workaround": "",
 

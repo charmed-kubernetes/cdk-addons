@@ -189,35 +189,6 @@ def patch_ceph_storage_class(repo, file):
         f.write(content)
 
 
-def patch_heapster_controller(repo, file):
-    source = os.path.join(repo, 'cluster/addons', file)
-    with open(source, "r") as f:
-        content = f.read()
-    # setup kubelet connection to use https port 10250 since 10255 was deprecated due to security concerns
-    content = content.replace("kubernetes.summary_api:''", "kubernetes.summary_api:https://kubernetes.default?kubeletPort=10250&kubeletHttps=true")
-    with open(source, "w") as f:
-        f.write(content)
-
-
-def patch_influxdb_grafana(repo, file):
-    source = os.path.join(repo, 'cluster/addons', file)
-    with open(source, "r") as f:
-        content = f.read()
-    # LP 1822761: bump default influxdb container memory
-    content = content.replace("memory: 500M", "memory: 1100M")
-    content = content.replace("volumes:\n\
-      - name: influxdb-persistent-storage\n\
-        emptyDir: {}\n\
-      - name: grafana-persistent-storage\n\
-        emptyDir: {}", "volumes:\n\
-      - name: influxdb-persistent-storage\n\
-        {{ monitorstorage['influxdb'] }}\n\
-      - name: grafana-persistent-storage\n\
-        {{ monitorstorage['grafana'] }}")
-    with open(source, "w") as f:
-        f.write(content)
-
-
 def patch_metrics_server(repo, file):
     source = os.path.join(repo, 'cluster/addons', file)
     with open(source, "r") as f:
@@ -399,18 +370,6 @@ def get_addon_templates():
         kubedns = "dns/kube-dns"
         patch_kubedns(repo, kubedns + "/kube-dns.yaml.in")
         add_addon(repo, kubedns + "/kube-dns.yaml.in", dest + "/kube-dns.yaml")
-
-        influxdb = "cluster-monitoring/influxdb"
-        add_addon(repo, influxdb + "/grafana-service.yaml", dest)
-        patch_heapster_controller(repo, influxdb + "/heapster-controller.yaml")
-        add_addon(repo, influxdb + "/heapster-controller.yaml", dest)
-        add_addon(repo, influxdb + "/heapster-service.yaml", dest)
-        patch_influxdb_grafana(repo, influxdb + "/influxdb-grafana-controller.yaml")
-        add_addon(repo, influxdb + "/influxdb-grafana-controller.yaml", dest)
-        add_addon(repo, influxdb + "/influxdb-service.yaml", dest)
-
-        # Heapster RBAC
-        add_addon(repo, "cluster-monitoring/heapster-rbac.yaml", dest)
 
         # metrics server
         add_addon(repo, "metrics-server/auth-delegator.yaml", dest)

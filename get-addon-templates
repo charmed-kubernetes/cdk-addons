@@ -192,8 +192,14 @@ def patch_influxdb_grafana(repo, file):
     source = os.path.join(repo, 'cluster/addons', file)
     with open(source, "r") as f:
         content = f.read()
-    # LP 1822761: bump default influxdb container memory
-    content = content.replace("memory: 500M", "memory: 1100M")
+    # LP 1862209: remove influx mem limits
+    content = content.replace("            limits:\n"
+                              "              cpu: 100m\n"
+                              "              memory: 500Mi\n"
+                              "            requests:\n",
+                              "            limits:\n"
+                              "              cpu: 100m\n"
+                              "            requests:\n")
     with open(source, "w") as f:
         f.write(content)
 

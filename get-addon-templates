@@ -512,7 +512,7 @@ def get_addon_templates():
         files = ["cluster-role-binding", "cluster-role", "deployment",
                  "service-account", "service"]
         for f in files:
-            add_addon(repo, "kubernetes/kube-state-metrics-{}.yaml".format(f), dest, base='.')
+            add_addon(repo, "examples/standard/{}.yaml".format(f), dest, base='.')
 
     for template in Path('bundled-templates').iterdir():
         shutil.copy2(str(template), dest)

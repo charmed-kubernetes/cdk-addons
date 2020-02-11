@@ -18,7 +18,8 @@ COREDNS_COMMIT=5a861f8a6fa192ac9dbda1856bff95b9d6721389
 OPENSTACK_PROVIDER_COMMIT=release-1.15
 # pin dashboard to latest v2 tag (https://github.com/kubernetes/dashboard)
 KUBE_DASHBOARD_VERSION=v2.0.0-rc5
-KUBE_STATE_METRICS_VERSION=release-1.8
+# pin state metrics to 1.9.x branch (https://github.com/kubernetes/kube-state-metrics)
+KUBE_STATE_METRICS_VERSION=release-1.9
 
 default: prep
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl

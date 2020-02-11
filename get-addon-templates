@@ -210,7 +210,7 @@ def patch_cephfs_storage_class(repo, file):
     with open(source) as stream:
         manifest = yaml.load(stream)
     manifest['parameters']['monitors'] = "{{ mon_hosts }}"
-    manifest['parameters']['pool'] = "{{ pool_name }}"
+    manifest['parameters']['pool'] = "cephfs-pool"
     manifest['metadata']['name'] = "cephfs"
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)

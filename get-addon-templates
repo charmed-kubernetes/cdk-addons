@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import base64
 import os
 import re
 import shutil
@@ -220,6 +221,43 @@ def patch_influxdb_grafana(repo, file):
         {{ monitorstorage['influxdb'] }}\n\
       - name: grafana-persistent-storage\n\
         {{ monitorstorage['grafana'] }}")
+    with open(source, "w") as f:
+        f.write(content)
+
+
+def patch_cephfs_secret(repo, file):
+    source = os.path.join(repo, file)
+    with open(source) as stream:
+        manifest = yaml.load(stream)
+    # TODO: the base64 encoding of the adminID & userID will need to be removed
+    # when switching to ceph-csi 2.0.0
+    manifest['data']['adminID'] = base64.b64encode(b"admin").decode('utf-8')
+    manifest['data']['adminKey'] = "{{ admin_key }}"
+    # k8s-master just passes in the admin key for both
+    manifest['data']['userID'] = base64.b64encode(b"admin").decode('utf-8')
+    manifest['data']['userKey'] = "{{ kubernetes_key }}"
+    with open(source, 'w') as yaml_file:
+        yaml.dump(manifest, yaml_file, default_flow_style=False)
+
+
+def patch_cephfs_storage_class(repo, file):
+    source = os.path.join(repo, file)
+    with open(source) as stream:
+        manifest = yaml.load(stream)
+    manifest['parameters']['monitors'] = "{{ mon_hosts }}"
+    manifest['parameters']['pool'] = "ceph-fs_data"
+    manifest['metadata']['name'] = "cephfs"
+    with open(source, 'w') as yaml_file:
+        yaml.dump(manifest, yaml_file, default_flow_style=False)
+
+    # :-/ Would be nice to be able to add this template a different way
+    with open(source, "r") as f:
+        content = f.read()
+    content = content.replace("metadata:", """metadata:
+{% if default == true %}
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+{% endif %}""")
     with open(source, "w") as f:
         f.write(content)
 
@@ -460,6 +498,28 @@ def get_addon_templates():
         add_addon(repo, "deploy/rbd/kubernetes/csi-attacher-rbac.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-provisioner-rbac.yaml", dest, base='.')
+
+        log.info("Copying CephFS CSI templates to " + dest)
+        cephfs_dest = os.path.join(dest, 'cephfs')
+        os.mkdir(cephfs_dest)
+        patch_for_1_16(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml", {"app": "csi-cephfsplugin-provisioner"})
+        patch_for_1_16(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-attacher.yaml", {"app": "csi-cephfsplugin-attacher"})
+        patch_for_1_16(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml", {"app": "csi-cephfsplugin"})
+        patch_for_CVE_2019_11255(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml")
+        add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml", cephfs_dest, base='.')
+        add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-attacher.yaml", cephfs_dest, base='.')
+        add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml", cephfs_dest, base='.')
+
+        patch_cephfs_secret(repo, "examples/cephfs/secret.yaml")
+        add_addon(repo, "examples/cephfs/secret.yaml", cephfs_dest, base='.')
+
+        patch_cephfs_storage_class(repo, "examples/cephfs/storageclass.yaml")
+        add_addon(repo, "examples/cephfs/storageclass.yaml", cephfs_dest, base='.')
+
+        # rbac templates
+        add_addon(repo, "deploy/cephfs/kubernetes/csi-attacher-rbac.yaml", cephfs_dest, base='.')
+        add_addon(repo, "deploy/cephfs/kubernetes/csi-nodeplugin-rbac.yaml", cephfs_dest, base='.')
+        add_addon(repo, "deploy/cephfs/kubernetes/csi-provisioner-rbac.yaml", cephfs_dest, base='.')
 
     with cloud_provider_openstack_repo() as repo:
         log.info("Copying openstack tempates to " + dest)

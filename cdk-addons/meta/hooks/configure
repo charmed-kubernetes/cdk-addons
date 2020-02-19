@@ -11,6 +11,6 @@ for key in arch kubeconfig dns-domain enable-dashboard dns-provider \
            keystone-cert-file keystone-key-file keystone-server-ca \
            dashboard-auth enable-openstack openstack-cloud-conf \
            openstack-endpoint-ca enable-aws enable-azure enable-gcp \
-           monitorstorage cluster-tag; do
+           monitorstorage cluster-tag enable-cephfs; do
     snapctl get "$key" > "$SNAP_DATA/config/$key"
 done

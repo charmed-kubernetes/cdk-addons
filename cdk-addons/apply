@@ -7,6 +7,7 @@ import subprocess
 import traceback
 import yaml
 import base64
+from pathlib import Path
 
 from jinja2 import Template
 
@@ -149,6 +150,18 @@ def render_templates():
         render_template("csi-attacher-rbac.yaml", ceph_context)
         render_template("csi-nodeplugin-rbac.yaml", ceph_context)
         render_template("csi-provisioner-rbac.yaml", ceph_context)
+
+        if get_snap_config("enable-cephfs", required=False) == "true":
+            cephfs_context = ceph_context.copy()
+            cephfs_context['default'] = (default_storage == 'cephfs')
+            render_template("cephfs/secret.yaml", cephfs_context)
+            render_template("cephfs/csi-cephfsplugin.yaml", cephfs_context)
+            render_template("cephfs/csi-cephfsplugin-provisioner.yaml", cephfs_context)
+            render_template("cephfs/csi-cephfsplugin-attacher.yaml", cephfs_context)
+            render_template("cephfs/storageclass.yaml", cephfs_context)
+            render_template("cephfs/csi-attacher-rbac.yaml", cephfs_context)
+            render_template("cephfs/csi-nodeplugin-rbac.yaml", cephfs_context)
+            render_template("cephfs/csi-provisioner-rbac.yaml", cephfs_context)
         rendered = True
     if get_snap_config("enable-keystone", required=False) == "true":
         keystone_context = context.copy()
@@ -208,6 +221,8 @@ def render_template(file, context, required=True, render_filename=None):
         dest = os.path.join(addon_dir, render_filename)
     if not os.path.exists(source) and not required:
         return
+    # allow for sub-dirs
+    Path(dest).parent.mkdir(parents=True, exist_ok=True)
     with open(source) as f:
         template = Template(f.read())
     content = template.render(context)

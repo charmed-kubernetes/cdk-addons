@@ -1,9 +1,9 @@
 name: cdk-addons
 version: 'KUBE_VERSION'
 architectures: ['KUBE_ARCH']
-summary: Addons for the Canonical Distribution of Kubernetes
+summary: Addons for Charmed Kubernetes
 description: |
-  Addons for the Canonical Distribution of Kubernetes
+  Addons for Charmed Kubernetes
 grade: stable
 confinement: strict
 apps:

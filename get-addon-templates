@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import base64
 import os
 import re
 import shutil
@@ -160,8 +159,9 @@ def patch_ceph_secret(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
         manifest = yaml.load(stream)
-    manifest['data']['admin'] = "{{ admin_key }}"
-    manifest['data']['kubernetes'] = "{{ kubernetes_key }}"
+    manifest['stringData']['userID'] = "admin"
+    manifest['stringData']['userKey'] = "{{ kubernetes_key }}"
+    del manifest['stringData']['encryptionPassphrase']
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
@@ -170,10 +170,9 @@ def patch_ceph_storage_class(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
         manifest = yaml.load(stream)
-    manifest['parameters']['monitors'] = "{{ mon_hosts }}"
+    manifest['parameters']['clusterID'] = "{{ fsid }}"
     manifest['parameters']['pool'] = "{{ pool_name }}"
-    manifest['parameters']['fsType'] = "{{ fs_type }}"
-    manifest['parameters']['userid'] = "admin"
+    manifest['parameters']['csi.storage.k8s.io/fstype'] = "{{ fs_type }}"
     manifest['metadata']['name'] = "{{ sc_name }}"
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
@@ -194,13 +193,11 @@ def patch_cephfs_secret(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
         manifest = yaml.load(stream)
-    # TODO: the base64 encoding of the adminID & userID will need to be removed
-    # when switching to ceph-csi 2.0.0
-    manifest['data']['adminID'] = base64.b64encode(b"admin").decode('utf-8')
-    manifest['data']['adminKey'] = "{{ admin_key }}"
+    manifest['stringData']['adminID'] = "admin"
+    manifest['stringData']['adminKey'] = "{{ admin_key }}"
     # k8s-master just passes in the admin key for both
-    manifest['data']['userID'] = base64.b64encode(b"admin").decode('utf-8')
-    manifest['data']['userKey'] = "{{ kubernetes_key }}"
+    manifest['stringData']['userID'] = "admin"
+    manifest['stringData']['userKey'] = "{{ kubernetes_key }}"
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
@@ -209,7 +206,7 @@ def patch_cephfs_storage_class(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
         manifest = yaml.load(stream)
-    manifest['parameters']['monitors'] = "{{ mon_hosts }}"
+    manifest['parameters']['clusterID'] = "{{ fsid }}"
     manifest['parameters']['pool'] = "ceph-fs_data"
     manifest['metadata']['name'] = "cephfs"
     with open(source, 'w') as yaml_file:

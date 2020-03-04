@@ -85,7 +85,7 @@ ceph_csi_repo = repo_cloner(
 
 cloud_provider_openstack_repo = repo_cloner(
     url="https://github.com/kubernetes/cloud-provider-openstack.git",
-    commit=os.environ["OPENSTACK_PROVIDER_COMMIT"]
+    branch=os.environ["OPENSTACK_PROVIDER_VERSION"]
 )
 
 coredns_repo = repo_cloner(
@@ -282,17 +282,6 @@ def patch_keystone_deployment(repo, file):
         f.write(content)
 
 
-def patch_openstack_secret(repo, file):
-    """
-    Replace the hard-coded cloud.conf value with a template param.
-    """
-    source = Path(repo) / file
-    content = source.read_text()
-    content = re.sub(r'cloud.conf: .*', 'cloud.conf: {{ cloud_conf }}', content)
-    content += '{% if endpoint_ca_cert %}  endpoint-ca.cert: {{ endpoint_ca_cert }}\n{% endif %}'
-    source.write_text(content)
-
-
 def patch_openstack_ccm(repo, file):
     source = Path(repo) / file
     content = source.read_text()
@@ -484,18 +473,15 @@ def get_addon_templates():
         add_addon(repo, "examples/webhook/keystone-service.yaml", dest, base='.')
         add_addon(repo, "examples/webhook/keystone-rbac.yaml", dest, base='.')
 
-        patch_openstack_secret(repo, "manifests/controller-manager/cloud-config-secret.yaml")
         patch_openstack_ccm(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
         patch_openstack_registries(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
 
         add_addon(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml", dest, base='.')
-        add_addon(repo, "manifests/controller-manager/cloud-config-secret.yaml", dest, base='.')
         add_addon(repo, "cluster/addons/rbac/cloud-controller-manager-role-bindings.yaml", dest, base='.')
         add_addon(repo, "cluster/addons/rbac/cloud-controller-manager-roles.yaml", dest, base='.')
 
         patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml")
         patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml")
-        patch_for_CVE_2019_11255(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml")
 
         add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin-rbac.yaml", dest, base='.')
         add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml", dest, base='.')

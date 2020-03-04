@@ -155,6 +155,23 @@ def patch_plugin_manifest(repo, file):
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
 
+def patch_ceph_config_map(repo, file):
+    source = os.path.join(repo, file)
+    with open(source, "r") as f:
+        content = f.read()
+    content = content.replace("config.json: |-\n    []", """config.json: |-
+    [
+      {
+        "clusterID": "{{ fsid }}"
+        "monitors": [
+            "{{ mon_hosts }}"
+        ]
+      }
+    ]""")
+    with open(source, "w") as f:
+        f.write(content)
+
+
 def patch_ceph_secret(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
@@ -386,6 +403,9 @@ def get_addon_templates():
 
     with ceph_csi_repo() as repo:
         log.info("Copying ceph CSI templates to " + dest)
+        patch_ceph_config_map(repo, "deploy/rbd/kubernetes/csi-config-map.yaml")
+        add_addon(repo, "deploy/rbd/kubernetes/csi-config-map.yaml", dest, base='.')
+
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", dest, base='.')
 

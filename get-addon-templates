@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import base64
 import os
 import re
 import shutil
@@ -79,8 +78,8 @@ nvidia_plugin_repo = repo_cloner(
 )
 
 ceph_csi_repo = repo_cloner(
-    url="http://github.com/ceph/ceph-csi.git",
-    commit=os.environ["CEPH_CSI_COMMIT"]
+    url="https://github.com/ceph/ceph-csi.git",
+    branch=os.environ["CEPH_CSI_VERSION"]
 )
 
 cloud_provider_openstack_repo = repo_cloner(
@@ -156,12 +155,30 @@ def patch_plugin_manifest(repo, file):
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
 
+def patch_ceph_config_map(repo, file):
+    source = os.path.join(repo, file)
+    with open(source, "r") as f:
+        content = f.read()
+    content = content.replace("config.json: |-\n    []", """config.json: |-
+    [
+      {
+        "clusterID": "{{ fsid }}"
+        "monitors": [
+            "{{ mon_hosts }}"
+        ]
+      }
+    ]""")
+    with open(source, "w") as f:
+        f.write(content)
+
+
 def patch_ceph_secret(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
         manifest = yaml.load(stream)
-    manifest['data']['admin'] = "{{ admin_key }}"
-    manifest['data']['kubernetes'] = "{{ kubernetes_key }}"
+    manifest['stringData']['userID'] = "admin"
+    manifest['stringData']['userKey'] = "{{ kubernetes_key }}"
+    del manifest['stringData']['encryptionPassphrase']
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
@@ -170,10 +187,9 @@ def patch_ceph_storage_class(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
         manifest = yaml.load(stream)
-    manifest['parameters']['monitors'] = "{{ mon_hosts }}"
+    manifest['parameters']['clusterID'] = "{{ fsid }}"
     manifest['parameters']['pool'] = "{{ pool_name }}"
-    manifest['parameters']['fsType'] = "{{ fs_type }}"
-    manifest['parameters']['userid'] = "admin"
+    manifest['parameters']['csi.storage.k8s.io/fstype'] = "{{ fs_type }}"
     manifest['metadata']['name'] = "{{ sc_name }}"
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
@@ -194,13 +210,11 @@ def patch_cephfs_secret(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
         manifest = yaml.load(stream)
-    # TODO: the base64 encoding of the adminID & userID will need to be removed
-    # when switching to ceph-csi 2.0.0
-    manifest['data']['adminID'] = base64.b64encode(b"admin").decode('utf-8')
-    manifest['data']['adminKey'] = "{{ admin_key }}"
+    manifest['stringData']['adminID'] = "admin"
+    manifest['stringData']['adminKey'] = "{{ admin_key }}"
     # k8s-master just passes in the admin key for both
-    manifest['data']['userID'] = base64.b64encode(b"admin").decode('utf-8')
-    manifest['data']['userKey'] = "{{ kubernetes_key }}"
+    manifest['stringData']['userID'] = "admin"
+    manifest['stringData']['userKey'] = "{{ kubernetes_key }}"
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
@@ -209,7 +223,7 @@ def patch_cephfs_storage_class(repo, file):
     source = os.path.join(repo, file)
     with open(source) as stream:
         manifest = yaml.load(stream)
-    manifest['parameters']['monitors'] = "{{ mon_hosts }}"
+    manifest['parameters']['clusterID'] = "{{ fsid }}"
     manifest['parameters']['pool'] = "ceph-fs_data"
     manifest['metadata']['name'] = "cephfs"
     with open(source, 'w') as yaml_file:
@@ -354,38 +368,6 @@ def patch_kubedns(repo, file):
         f.write(content)
 
 
-def patch_for_1_16(repo, file, selector):
-    source = os.path.join(repo, file)
-    with open(source) as stream:
-        manifest = list(yaml.load_all(stream))
-    for doc in manifest:
-        if doc['kind'] == 'Deployment' or \
-           doc['kind'] == 'StatefulSet' or \
-           doc['kind'] == 'DaemonSet':
-            doc['apiVersion'] = 'apps/v1'
-            if 'selector' not in doc['spec']:
-                doc['spec']['selector'] = {}
-            doc['spec']['selector']['matchLabels'] = selector
-        elif doc['kind'] == 'NetworkPolicy':
-            doc['apiVersion'] = 'networking.k8s.io/v1'
-        elif doc['kind'] == 'PodSecurityPolicy':
-            doc['apiVersion'] = 'policy/v1beta1'
-    with open(source, "w") as yaml_file:
-        yaml.dump_all(manifest, yaml_file, default_flow_style=False)
-
-
-def patch_for_CVE_2019_11255(repo, file):
-    replace_images = [['/csi-provisioner:v1.0.1', '/csi-provisioner:v1.0.2'],
-                      ['/csi-snapshotter:v1.0.1', '/csi-snapshotter:v1.0.2']]
-    source = os.path.join(repo, file)
-    with open(source) as f:
-        content = f.read()
-    for i in replace_images:
-        content = content.replace(i[0], i[1])
-    with open(source, "w") as f:
-        f.write(content)
-
-
 def get_addon_templates():
     """ Get addon templates. This will clone the kubernetes repo from upstream
     and copy addons to ./templates """
@@ -417,17 +399,14 @@ def get_addon_templates():
     with nvidia_plugin_repo() as repo:
         log.info("Copying nvidia plugin to " + dest)
         patch_plugin_manifest(repo, "nvidia-device-plugin.yml")
-        patch_for_1_16(repo, "nvidia-device-plugin.yml", {"name": "nvidia-device-plugin-ds"})
         add_addon(repo, "nvidia-device-plugin.yml", dest, base='.')
 
     with ceph_csi_repo() as repo:
         log.info("Copying ceph CSI templates to " + dest)
-        patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", {"app": "csi-rbdplugin-provisioner"})
-        patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin-attacher.yaml", {"app": "csi-rbdplugin-attacher"})
-        patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", {"app": "csi-rbdplugin"})
-        patch_for_CVE_2019_11255(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml")
+        patch_ceph_config_map(repo, "deploy/rbd/kubernetes/csi-config-map.yaml")
+        add_addon(repo, "deploy/rbd/kubernetes/csi-config-map.yaml", dest, base='.')
+
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", dest, base='.')
-        add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-attacher.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", dest, base='.')
 
         patch_ceph_secret(repo, "examples/rbd/secret.yaml")
@@ -437,19 +416,13 @@ def get_addon_templates():
         add_addon(repo, "examples/rbd/storageclass.yaml", os.path.join(dest, "ceph-storageclass.yaml"), base='.')
 
         # rbac templates
-        add_addon(repo, "deploy/rbd/kubernetes/csi-attacher-rbac.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-provisioner-rbac.yaml", dest, base='.')
 
         log.info("Copying CephFS CSI templates to " + dest)
         cephfs_dest = os.path.join(dest, 'cephfs')
         os.mkdir(cephfs_dest)
-        patch_for_1_16(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml", {"app": "csi-cephfsplugin-provisioner"})
-        patch_for_1_16(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-attacher.yaml", {"app": "csi-cephfsplugin-attacher"})
-        patch_for_1_16(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml", {"app": "csi-cephfsplugin"})
-        patch_for_CVE_2019_11255(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml")
         add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml", cephfs_dest, base='.')
-        add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-attacher.yaml", cephfs_dest, base='.')
         add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml", cephfs_dest, base='.')
 
         patch_cephfs_secret(repo, "examples/cephfs/secret.yaml")
@@ -459,7 +432,6 @@ def get_addon_templates():
         add_addon(repo, "examples/cephfs/storageclass.yaml", cephfs_dest, base='.')
 
         # rbac templates
-        add_addon(repo, "deploy/cephfs/kubernetes/csi-attacher-rbac.yaml", cephfs_dest, base='.')
         add_addon(repo, "deploy/cephfs/kubernetes/csi-nodeplugin-rbac.yaml", cephfs_dest, base='.')
         add_addon(repo, "deploy/cephfs/kubernetes/csi-provisioner-rbac.yaml", cephfs_dest, base='.')
 

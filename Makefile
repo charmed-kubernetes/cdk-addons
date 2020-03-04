@@ -8,9 +8,8 @@ PWD=$(shell pwd)
 # NB: If we lock images to commits/versions, this could affect the image
 # version matching in ./get-addon-templates. Be careful here, and verify
 # any images we need based on commit are matched/substituted correctly.
-# NB Ceph: Need upstream issue resolved before we can bump ceph-csi commit
-# https://github.com/ceph/ceph-csi/issues/278
-CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
+# pin ceph-csi to currently available release branch
+CEPH_CSI_VERSION=release-v2.0
 # pin coredns to 1.6.5
 COREDNS_COMMIT=50982715688fb0cb601f2da5e1f2c695a440a222
 # pin cloud-provider-openstack to currently available release branch
@@ -37,7 +36,7 @@ docker: clean
 
 prep: clean
 	cp -r cdk-addons ${BUILD}
-	KUBE_ARCH=${KUBE_ARCH} KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} CEPH_CSI_COMMIT=${CEPH_CSI_COMMIT} COREDNS_COMMIT=${COREDNS_COMMIT} OPENSTACK_PROVIDER_VERSION=${OPENSTACK_PROVIDER_VERSION} KUBE_STATE_METRICS_VERSION=${KUBE_STATE_METRICS_VERSION} ./get-addon-templates
+	KUBE_ARCH=${KUBE_ARCH} KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} CEPH_CSI_VERSION=${CEPH_CSI_VERSION} COREDNS_COMMIT=${COREDNS_COMMIT} OPENSTACK_PROVIDER_VERSION=${OPENSTACK_PROVIDER_VERSION} KUBE_STATE_METRICS_VERSION=${KUBE_STATE_METRICS_VERSION} ./get-addon-templates
 	mv templates ${BUILD}
 
 upstream-images: prep

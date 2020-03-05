@@ -162,7 +162,7 @@ def patch_ceph_config_map(repo, file):
     content = content.replace("config.json: |-\n    []", """config.json: |-
     [
       {
-        "clusterID": "{{ fsid }}"
+        "clusterID": "{{ fsid }}",
         "monitors":
             {{ mon_hosts }}
       }

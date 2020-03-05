@@ -223,7 +223,7 @@ def patch_cephfs_storage_class(repo, file):
     with open(source) as stream:
         manifest = yaml.load(stream)
     manifest['parameters']['clusterID'] = "{{ fsid }}"
-    manifest['parameters']['fsName'] = "ceph-fs"
+    manifest['parameters']['fsName'] = "{{ fsname }}"
     manifest['metadata']['name'] = "cephfs"
     manifest['parameters']['pool'] = "ceph-fs_data"
     with open(source, 'w') as yaml_file:

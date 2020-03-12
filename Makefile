@@ -1,6 +1,7 @@
 BUILD=build
 KUBE_ARCH=amd64
-KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable.txt)
+# NB: change this to ./stable-1.xx.txt on relevant cdk-addons release-1.xx branches
+KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/latest.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)
 
@@ -10,12 +11,14 @@ PWD=$(shell pwd)
 # any images we need based on commit are matched/substituted correctly.
 # pin ceph-csi to currently available release branch
 CEPH_CSI_VERSION=release-v2.0
-# pin coredns to 1.6.5
-COREDNS_COMMIT=50982715688fb0cb601f2da5e1f2c695a440a222
+# pin coredns to 1.6.7 commit (https://github.com/coredns/deployment)
+COREDNS_COMMIT=b0a81f926196cc750ea329476169ac89f0bfd78b
 # pin cloud-provider-openstack to currently available release branch
 OPENSTACK_PROVIDER_VERSION=release-1.17
-KUBE_DASHBOARD_VERSION=v2.0.0-beta4
-KUBE_STATE_METRICS_VERSION=release-1.8
+# pin dashboard to latest v2 tag (https://github.com/kubernetes/dashboard)
+KUBE_DASHBOARD_VERSION=v2.0.0-rc5
+# pin state metrics to 1.9.x branch (https://github.com/kubernetes/kube-state-metrics)
+KUBE_STATE_METRICS_VERSION=release-1.9
 
 default: prep
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl

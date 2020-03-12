@@ -12,8 +12,8 @@ PWD=$(shell pwd)
 # NB Ceph: Need upstream issue resolved before we can bump ceph-csi commit
 # https://github.com/ceph/ceph-csi/issues/278
 CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
-# pin coredns to 1.6.6 commit (https://github.com/coredns/deployment)
-COREDNS_COMMIT=5a861f8a6fa192ac9dbda1856bff95b9d6721389
+# pin coredns to 1.6.7 commit (https://github.com/coredns/deployment)
+COREDNS_COMMIT=b0a81f926196cc750ea329476169ac89f0bfd78b
 # pin cloud-provider-openstack because it's under active dev
 OPENSTACK_PROVIDER_COMMIT=release-1.15
 # pin dashboard to latest v2 tag (https://github.com/kubernetes/dashboard)

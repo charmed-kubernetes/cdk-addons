@@ -95,19 +95,17 @@ def render_templates():
     if get_snap_config("enable-ceph", required=False) == "true":
         ceph_context = context.copy()
         default_storage = get_snap_config("default-storage", required=True)
-        ceph_context['admin_key'] = base64.b64decode(get_snap_config(
-            "ceph-admin-key", required=True)).decode('utf-8')
-        ceph_context['fsid'] = get_snap_config(
-            "ceph-fsid", required=True)
-        ceph_context['kubernetes_key'] = base64.b64decode(get_snap_config(
-            "ceph-kubernetes-key", required=True)).decode('utf-8')
-        ceph_context['mon_hosts'] = json.dumps(get_snap_config(
-            "ceph-mon-hosts", required=True).split())
+        ceph_context['admin_key'] = get_snap_config(
+            "ceph-admin-key", required=True)
+        ceph_context['kubernetes_key'] = get_snap_config(
+            "ceph-kubernetes-key", required=True)
+        ceph_context['mon_hosts'] = get_snap_config(
+            "ceph-mon-hosts", required=True)
 
         render_template("ceph-secret.yaml", ceph_context)
-        render_template("csi-config-map.yaml", ceph_context)
         render_template("csi-rbdplugin.yaml", ceph_context)
         render_template("csi-rbdplugin-provisioner.yaml", ceph_context)
+        render_template("csi-rbdplugin-attacher.yaml", ceph_context)
 
         ext4_context = ceph_context.copy()
         if default_storage == 'ceph-ext4':
@@ -132,18 +130,19 @@ def render_templates():
         render_template("ceph-storageclass.yaml", xfs_context,
                         render_filename="ceph-xfs-storageclass.yaml")
         # RBAC
+        render_template("csi-attacher-rbac.yaml", ceph_context)
         render_template("csi-nodeplugin-rbac.yaml", ceph_context)
         render_template("csi-provisioner-rbac.yaml", ceph_context)
 
         if get_snap_config("enable-cephfs", required=False) == "true":
             cephfs_context = ceph_context.copy()
             cephfs_context['default'] = (default_storage == 'cephfs')
-            cephfs_context['fsname'] = get_snap_config(
-                "ceph-fsname", required=True)
             render_template("cephfs/secret.yaml", cephfs_context)
             render_template("cephfs/csi-cephfsplugin.yaml", cephfs_context)
             render_template("cephfs/csi-cephfsplugin-provisioner.yaml", cephfs_context)
+            render_template("cephfs/csi-cephfsplugin-attacher.yaml", cephfs_context)
             render_template("cephfs/storageclass.yaml", cephfs_context)
+            render_template("cephfs/csi-attacher-rbac.yaml", cephfs_context)
             render_template("cephfs/csi-nodeplugin-rbac.yaml", cephfs_context)
             render_template("cephfs/csi-provisioner-rbac.yaml", cephfs_context)
         rendered = True
@@ -177,7 +176,7 @@ def render_templates():
         render_template("cloud-controller-manager-roles.yaml", openstack_context)
         render_template("cloud-controller-manager-role-bindings.yaml", openstack_context)
         render_template("openstack-cloud-controller-manager-ds.yaml", openstack_context)
-        render_template("cloud-config-secret-openstack.yaml", openstack_context)
+        render_template("cloud-config-secret.yaml", openstack_context)
 
         render_template("cinder-csi-controllerplugin-rbac.yaml", openstack_context)
         render_template("cinder-csi-controllerplugin.yaml", openstack_context)

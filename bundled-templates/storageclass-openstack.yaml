@@ -4,4 +4,4 @@ metadata:
   name: cdk-cinder
   annotations:
     juju.io/workload-storage: "true"
-provisioner: cinder.csi.openstack.org
+provisioner: csi-cinderplugin

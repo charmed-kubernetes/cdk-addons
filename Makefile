@@ -13,8 +13,8 @@ PWD=$(shell pwd)
 # https://github.com/ceph/ceph-csi/issues/278
 CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
 COREDNS_COMMIT=b0a81f926196cc750ea329476169ac89f0bfd78b
-# pin cloud-provider-openstack to currently available release branch
-OPENSTACK_PROVIDER_VERSION=release-1.17
+# pin cloud-provider-openstack to currently available release tag
+OPENSTACK_PROVIDER_VERSION=v1.17.0
 # pin dashboard to latest v2 tag (https://github.com/kubernetes/dashboard)
 KUBE_DASHBOARD_VERSION=v2.0.0-rc5
 # pin state metrics to 1.9.x branch (https://github.com/kubernetes/kube-state-metrics)

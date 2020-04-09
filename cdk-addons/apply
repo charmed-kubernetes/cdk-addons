@@ -176,7 +176,7 @@ def render_templates():
         render_template("cloud-controller-manager-roles.yaml", openstack_context)
         render_template("cloud-controller-manager-role-bindings.yaml", openstack_context)
         render_template("openstack-cloud-controller-manager-ds.yaml", openstack_context)
-        render_template("cloud-config-secret.yaml", openstack_context)
+        render_template("cloud-config-secret-openstack.yaml", openstack_context)
 
         render_template("cinder-csi-controllerplugin-rbac.yaml", openstack_context)
         render_template("cinder-csi-controllerplugin.yaml", openstack_context)

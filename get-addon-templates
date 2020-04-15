@@ -331,26 +331,7 @@ def patch_coredns(repo, file):
     content = content.replace("clusterIP: CLUSTER_DNS_IP", "#clusterIP: CLUSTER_DNS_IP")
     content = content.replace(
         "image: coredns/coredns",
-        "image: {{ registry|default('docker.io') }}/coredns/coredns{{ multiarch_workaround }}")
-    with open(source, "w") as f:
-        f.write(content)
-
-
-def patch_kubedns(repo, file):
-    source = os.path.join(repo, 'cluster/addons', file)
-    with open(source, "r") as f:
-        content = f.read()
-    # Inject our hacky multiarch workaround until our registry supports fat manifests:
-    # https://github.com/charmed-kubernetes/cdk-addons/pull/130
-    content = content.replace(
-        "image: k8s.gcr.io/k8s-dns-kube-dns:1.14.13",
-        "image: {{ registry|default('k8s.gcr.io') }}/k8s-dns-kube-dns{{ multiarch_workaround }}:1.14.13")
-    content = content.replace(
-        "image: k8s.gcr.io/k8s-dns-dnsmasq-nanny:1.14.13",
-        "image: {{ registry|default('k8s.gcr.io') }}/k8s-dns-dnsmasq-nanny{{ multiarch_workaround }}:1.14.13")
-    content = content.replace(
-        "image: k8s.gcr.io/k8s-dns-sidecar:1.14.13",
-        "image: {{ registry|default('k8s.gcr.io') }}/k8s-dns-sidecar{{ multiarch_workaround }}:1.14.13")
+        "image: {{ registry|default('docker.io') }}/coredns/coredns")
     with open(source, "w") as f:
         f.write(content)
 
@@ -395,9 +376,7 @@ def get_addon_templates():
     with kubernetes_repo() as repo:
         log.info("Copying addons to " + dest)
 
-        kubedns = "dns/kube-dns"
-        patch_kubedns(repo, kubedns + "/kube-dns.yaml.in")
-        add_addon(repo, kubedns + "/kube-dns.yaml.in", dest + "/kube-dns.yaml")
+        add_addon(repo, "dns/kube-dns/kube-dns.yaml.in", dest + "/kube-dns.yaml")
 
         # metrics server
         add_addon(repo, "metrics-server/auth-delegator.yaml", dest)

@@ -18,12 +18,6 @@ dns_providers = {
     'kube-dns': 'kube-dns.yaml'
 }
 
-# Known registries that do not support multi-arch image manifests.
-single_arch_registries = [
-    'image-registry.canonical.com',
-    'rocks.canonical.com',
-]
-
 def main():
     if render_templates():
         apply_addons()
@@ -47,9 +41,6 @@ def render_templates():
         "metrics_server_memory_per_node": "4",
         "metrics_server_min_cluster_size": "16",
 
-        # may need to hack image names if our registry doesn't support multi-arch images
-        "multiarch_workaround": "",
-
         # let addons know what we're calling our cluster
         "cluster_tag": get_snap_config("cluster-tag", required=False),
     }
@@ -57,11 +48,6 @@ def render_templates():
     registry = get_snap_config("registry", required=False)
     if registry:
         context["registry"] = registry
-
-        for arch_reg in single_arch_registries:
-            if arch_reg in registry:
-                context["multiarch_workaround"] = "-{}".format(context["arch"])
-                break
 
     rendered = False
     dns_provider = get_snap_config("dns-provider")

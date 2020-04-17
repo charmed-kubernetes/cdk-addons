@@ -6,6 +6,7 @@ description: |
   Addons for Charmed Kubernetes
 grade: stable
 confinement: strict
+base: core18
 apps:
   apply:
     command: apply

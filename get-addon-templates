@@ -322,6 +322,9 @@ def patch_coredns(repo, file):
     content = content.replace("FEDERATIONS", "")
     content = content.replace("UPSTREAMNAMESERVER", "/etc/resolv.conf")
     content = content.replace("STUBDOMAINS", "")
+    content = content.replace("fallthrough in-addr.arpa ip6.arpa",
+                              "fallthrough in-addr.arpa ip6.arpa\n\
+          pods insecure")
     # Let Kubernetes handle the service IP. When upgrading from kube-dns it
     # will stay the same on its own.
     content = content.replace("clusterIP: CLUSTER_DNS_IP", "#clusterIP: CLUSTER_DNS_IP")

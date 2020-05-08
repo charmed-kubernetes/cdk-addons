@@ -71,7 +71,7 @@ kubernetes_repo = repo_cloner(
 
 kubernetes_dashboard_repo = repo_cloner(
     url="https://github.com/kubernetes/dashboard.git",
-    branch=os.environ["KUBE_DASHBOARD_VERSION"]
+    commit=os.environ["KUBE_DASHBOARD_COMMIT"]
 )
 
 nvidia_plugin_repo = repo_cloner(
@@ -85,7 +85,7 @@ ceph_csi_repo = repo_cloner(
 
 cloud_provider_openstack_repo = repo_cloner(
     url="https://github.com/kubernetes/cloud-provider-openstack.git",
-    branch=os.environ["OPENSTACK_PROVIDER_VERSION"]
+    commit=os.environ["OPENSTACK_PROVIDER_COMMIT"]
 )
 
 coredns_repo = repo_cloner(
@@ -95,7 +95,7 @@ coredns_repo = repo_cloner(
 
 kube_state_metrics_repo = repo_cloner(
     url="https://github.com/kubernetes/kube-state-metrics.git",
-    branch=os.environ["KUBE_STATE_METRICS_VERSION"]
+    commit=os.environ["KUBE_STATE_METRICS_COMMIT"]
 )
 
 

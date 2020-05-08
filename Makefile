@@ -13,12 +13,15 @@ PWD=$(shell pwd)
 # https://github.com/ceph/ceph-csi/issues/278
 CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
 COREDNS_COMMIT=b0a81f926196cc750ea329476169ac89f0bfd78b
-# pin cloud-provider-openstack to currently available release branch
-OPENSTACK_PROVIDER_VERSION=release-1.17
-# pin dashboard to latest v2 tag (https://github.com/kubernetes/dashboard)
-KUBE_DASHBOARD_VERSION=v2.0.0-rc5
-# pin state metrics to 1.9.x branch (https://github.com/kubernetes/kube-state-metrics)
-KUBE_STATE_METRICS_VERSION=release-1.9
+# pin o7k-cloud-provider to current 1.17 commit
+# https://github.com/kubernetes/cloud-provider-openstack/commit/486cf06ea7fc3fafa022cc3a0d03fd63c8ff79e2
+OPENSTACK_PROVIDER_COMMIT=486cf06ea7fc3fafa022cc3a0d03fd63c8ff79e2
+# pin dashboard to current 2.0.0-rc5 commit
+# https://github.com/kubernetes/dashboard/commit/646b573a938cc083f1712de05334f31e7003cc4e
+KUBE_DASHBOARD_COMMIT=646b573a938cc083f1712de05334f31e7003cc4e
+# pin state metrics to current 1.9.5 commit
+# https://github.com/kubernetes/kube-state-metrics/commit/7710f43536611dfbd4eba64483baa8d1af39e404
+KUBE_STATE_METRICS_COMMIT=7710f43536611dfbd4eba64483baa8d1af39e404
 
 default: prep
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl
@@ -39,7 +42,7 @@ docker: clean
 
 prep: clean
 	cp -r cdk-addons ${BUILD}
-	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_VERSION=${KUBE_DASHBOARD_VERSION} CEPH_CSI_COMMIT=${CEPH_CSI_COMMIT} COREDNS_COMMIT=${COREDNS_COMMIT} OPENSTACK_PROVIDER_VERSION=${OPENSTACK_PROVIDER_VERSION} KUBE_STATE_METRICS_VERSION=${KUBE_STATE_METRICS_VERSION} ./get-addon-templates
+	KUBE_VERSION=${KUBE_VERSION} KUBE_DASHBOARD_COMMIT=${KUBE_DASHBOARD_COMMIT} CEPH_CSI_COMMIT=${CEPH_CSI_COMMIT} COREDNS_COMMIT=${COREDNS_COMMIT} OPENSTACK_PROVIDER_COMMIT=${OPENSTACK_PROVIDER_COMMIT} KUBE_STATE_METRICS_COMMIT=${KUBE_STATE_METRICS_COMMIT} ./get-addon-templates
 	mv templates ${BUILD}
 
 upstream-images: prep

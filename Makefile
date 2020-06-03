@@ -9,19 +9,11 @@ PWD=$(shell pwd)
 # NB: If we lock images to commits/versions, this could affect the image
 # version matching in ./get-addon-templates. Be careful here, and verify
 # any images we need based on commit are matched/substituted correctly.
-# NB Ceph: Need upstream issue resolved before we can bump ceph-csi commit
-# https://github.com/ceph/ceph-csi/issues/278
-CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6
-COREDNS_COMMIT=b0a81f926196cc750ea329476169ac89f0bfd78b
-# pin o7k-cloud-provider to current 1.17 commit
-# https://github.com/kubernetes/cloud-provider-openstack/commit/486cf06ea7fc3fafa022cc3a0d03fd63c8ff79e2
-OPENSTACK_PROVIDER_COMMIT=486cf06ea7fc3fafa022cc3a0d03fd63c8ff79e2
-# pin dashboard to current 2.0.0-rc5 commit
-# https://github.com/kubernetes/dashboard/commit/646b573a938cc083f1712de05334f31e7003cc4e
-KUBE_DASHBOARD_COMMIT=646b573a938cc083f1712de05334f31e7003cc4e
-# pin state metrics to current 1.9.5 commit
-# https://github.com/kubernetes/kube-state-metrics/commit/7710f43536611dfbd4eba64483baa8d1af39e404
-KUBE_STATE_METRICS_COMMIT=7710f43536611dfbd4eba64483baa8d1af39e404
+CEPH_CSI_COMMIT=d503729fc45ab6064ec472e2f4f66903fbb67be6  # v2.1.1
+COREDNS_COMMIT=75a1cad61791d38ba955ef29dad0366c9ad6acc4  # v1.18
+OPENSTACK_PROVIDER_COMMIT=466040afb25d04184267b13da183f42d9a923eed  # v1.18.0
+KUBE_DASHBOARD_COMMIT=5b83803463d035c089ce505991cb37733ee1668e  # v2.0.1
+KUBE_STATE_METRICS_COMMIT=b3fa5852d755c912c2601c53781a58567c822b81  # v1.9.7
 
 default: prep
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl

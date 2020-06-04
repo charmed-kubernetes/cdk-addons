@@ -402,17 +402,21 @@ def get_addon_templates():
     with ceph_csi_repo() as repo:
         log.info("Copying ceph CSI templates to " + dest)
         patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", {"app": "csi-rbdplugin-provisioner"})
+        patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin-attacher.yaml", {"app": "csi-rbdplugin-attacher"})
         patch_for_1_16(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", {"app": "csi-rbdplugin"})
         patch_for_CVE_2019_11255(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml")
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-attacher.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", dest, base='.')
 
+        patch_ceph_secret(repo, "examples/rbd/secret.yaml")
         add_addon(repo, "examples/rbd/secret.yaml", os.path.join(dest, "ceph-secret.yaml"), base='.')
 
         patch_ceph_storage_class(repo, "examples/rbd/storageclass.yaml")
         add_addon(repo, "examples/rbd/storageclass.yaml", os.path.join(dest, "ceph-storageclass.yaml"), base='.')
 
         # rbac templates
+        add_addon(repo, "deploy/rbd/kubernetes/csi-attacher-rbac.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml", dest, base='.')
         add_addon(repo, "deploy/rbd/kubernetes/csi-provisioner-rbac.yaml", dest, base='.')
 
@@ -420,15 +424,21 @@ def get_addon_templates():
         cephfs_dest = os.path.join(dest, 'cephfs')
         os.mkdir(cephfs_dest)
         patch_for_1_16(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml", {"app": "csi-cephfsplugin-provisioner"})
+        patch_for_1_16(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-attacher.yaml", {"app": "csi-cephfsplugin-attacher"})
         patch_for_1_16(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml", {"app": "csi-cephfsplugin"})
         patch_for_CVE_2019_11255(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml")
         add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml", cephfs_dest, base='.')
+        add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-attacher.yaml", cephfs_dest, base='.')
         add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml", cephfs_dest, base='.')
+
+        patch_cephfs_secret(repo, "examples/cephfs/secret.yaml")
+        add_addon(repo, "examples/cephfs/secret.yaml", cephfs_dest, base='.')
 
         patch_cephfs_storage_class(repo, "examples/cephfs/storageclass.yaml")
         add_addon(repo, "examples/cephfs/storageclass.yaml", cephfs_dest, base='.')
 
         # rbac templates
+        add_addon(repo, "deploy/cephfs/kubernetes/csi-attacher-rbac.yaml", cephfs_dest, base='.')
         add_addon(repo, "deploy/cephfs/kubernetes/csi-nodeplugin-rbac.yaml", cephfs_dest, base='.')
         add_addon(repo, "deploy/cephfs/kubernetes/csi-provisioner-rbac.yaml", cephfs_dest, base='.')
 

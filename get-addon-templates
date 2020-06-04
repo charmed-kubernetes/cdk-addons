@@ -384,7 +384,6 @@ def get_addon_templates():
         patch_metrics_server(repo, "metrics-server/metrics-server-deployment.yaml")
         add_addon(repo, "metrics-server/metrics-server-deployment.yaml", dest)
         add_addon(repo, "metrics-server/metrics-server-service.yaml", dest)
-        patch_metrics_reader(repo, "metrics-server/resource-reader.yaml")
         add_addon(repo, "metrics-server/resource-reader.yaml", dest)
 
     with kubernetes_dashboard_repo() as repo:

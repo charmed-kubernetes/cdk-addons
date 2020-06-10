@@ -119,13 +119,6 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
         r"image: {{ registry|default('rocks.canonical.com/cdk') }}/addon-resizer-{{ arch }}:1.8.5",
         content
     )
-    # NB: dashboard has a multiarch manifest (https://hub.docker.com/u/kubernetesui/),
-    # but since arch-specific images are available, use them. This prevents potential
-    # arch-specific issues we may have when handling fat manifests in rocks.
-    content = content.replace(
-        "kubernetesui/dashboard:v2.0.0",
-        "kubernetesui/dashboard-{{ arch }}:v2.0.0"
-    )
     # Make sure images come from the configured registry (or use the default)
     content = re.sub(r"image:\s*cdkbot/",
                      "image: {{ registry|default('docker.io') }}/cdkbot/",
@@ -384,6 +377,7 @@ def get_addon_templates():
         patch_metrics_server(repo, "metrics-server/metrics-server-deployment.yaml")
         add_addon(repo, "metrics-server/metrics-server-deployment.yaml", dest)
         add_addon(repo, "metrics-server/metrics-server-service.yaml", dest)
+        patch_metrics_reader(repo, "metrics-server/resource-reader.yaml")
         add_addon(repo, "metrics-server/resource-reader.yaml", dest)
 
     with kubernetes_dashboard_repo() as repo:

@@ -247,8 +247,12 @@ def patch_metrics_reader(repo, file):
     for doc in manifest:
         if doc['kind'] == 'ClusterRole':
             for rule in doc['rules']:
-                if '' in rule['apiGroups']:
-                    rule['resources'].append('nodes/stats')
+                try:
+                    if '' in rule['apiGroups']:
+                        rule['resources'].append('nodes/stats')
+                except KeyError:
+                    # In 1.19, not all rules have an 'apiGroups' key
+                    continue
     with open(source, "w") as yaml_file:
         yaml.dump_all(manifest, yaml_file, default_flow_style=False)
 

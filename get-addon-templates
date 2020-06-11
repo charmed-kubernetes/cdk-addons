@@ -116,7 +116,7 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     content = content.replace("clusterIP: {{ pillar['dns_server'] }}", "# clusterIP: {{ pillar['dns_server'] }}")
     content = re.sub(
         r'(image:.*)addon-resizer:1\..*',
-        r"image: {{ registry|default('rocks.canonical.com/cdk') }}/addon-resizer-{{ arch }}:1.8.5",
+        r"image: {{ registry|default('rocks.canonical.com/cdk') }}/addon-resizer-{{ arch }}:1.8.9",
         content
     )
     # Make sure images come from the configured registry (or use the default)

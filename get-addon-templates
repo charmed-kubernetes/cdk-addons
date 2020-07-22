@@ -78,8 +78,8 @@ nvidia_plugin_repo = repo_cloner(
 )
 
 ceph_csi_repo = repo_cloner(
-    url="https://github.com/ceph/ceph-csi.git",
-    branch=os.environ["CEPH_CSI_VERSION"]
+    url="http://github.com/ceph/ceph-csi.git",
+    commit=os.environ["CEPH_CSI_COMMIT"]
 )
 
 cloud_provider_openstack_repo = repo_cloner(

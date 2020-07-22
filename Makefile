@@ -9,7 +9,7 @@ PWD=$(shell pwd)
 # NB: If we lock images to commits/versions, this could affect the image
 # version matching in ./get-addon-templates. Be careful here, and verify
 # any images we need based on commit are matched/substituted correctly.
-CEPH_CSI_COMMIT=a4dd8457350b4c4586743d78cbd5776437e618b6  # v1.1.0
+CEPH_CSI_COMMIT=a03675e3aeea093a48c389c5795730445356f3e1  # v2.1.2
 COREDNS_COMMIT=75a1cad61791d38ba955ef29dad0366c9ad6acc4  # v1.6.7
 OPENSTACK_PROVIDER_COMMIT=486cf06ea7fc3fafa022cc3a0d03fd63c8ff79e2  # v1.17.0
 KUBE_DASHBOARD_COMMIT=5b83803463d035c089ce505991cb37733ee1668e  # v2.0.1

@@ -94,6 +94,7 @@ def render_templates():
         render_template("csi-config-map.yaml", ceph_context)
         render_template("csi-rbdplugin.yaml", ceph_context)
         render_template("csi-rbdplugin-provisioner.yaml", ceph_context)
+        render_template("ceph-csi-encryption-kms-config.yaml", ceph_context)
 
         ext4_context = ceph_context.copy()
         if default_storage == 'ceph-ext4':

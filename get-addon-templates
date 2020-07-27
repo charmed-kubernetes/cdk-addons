@@ -156,9 +156,9 @@ def patch_ceph_config_map(repo, file):
     content = content.replace("config.json: |-\n    []", """config.json: |-
     [
       {
-        "clusterID": "{{ fsid }}"
+        "clusterID": "{{ fsid }}",
         "monitors": [
-            "{{ mon_hosts }}"
+            {{ mon_hosts }}
         ]
       }
     ]""")
@@ -218,6 +218,7 @@ def patch_cephfs_storage_class(repo, file):
     with open(source) as stream:
         manifest = yaml.load(stream)
     manifest['parameters']['clusterID'] = "{{ fsid }}"
+    manifest['parameters']['fsName'] = "{{ fsname }}"
     manifest['parameters']['pool'] = "ceph-fs_data"
     manifest['metadata']['name'] = "cephfs"
     with open(source, 'w') as yaml_file:

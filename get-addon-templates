@@ -157,9 +157,7 @@ def patch_ceph_config_map(repo, file):
     [
       {
         "clusterID": "{{ fsid }}",
-        "monitors": [
-            {{ mon_hosts }}
-        ]
+        "monitors": {{ mon_hosts }}
       }
     ]""")
     with open(source, "w") as f:

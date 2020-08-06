@@ -122,8 +122,8 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     content = re.sub(r"image:\s*cdkbot/",
                      "image: {{ registry|default('docker.io') }}/cdkbot/",
                      content)
-    content = re.sub(r"image:\s*k8s.gcr.io/",
-                     "image: {{ registry|default('k8s.gcr.io') }}/",
+    content = re.sub(r"image:\s*(\w+).gcr.io/",
+                     r"image: {{ registry|default('\1.gcr.io') }}/",
                      content)
     content = re.sub(r"image:\s*nvidia/",
                      "image: {{ registry|default('docker.io') }}/nvidia/",

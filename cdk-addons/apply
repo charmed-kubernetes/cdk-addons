@@ -4,7 +4,7 @@ import json
 import os
 import shutil
 import subprocess
-import traceback
+import sys
 import yaml
 import base64
 from pathlib import Path
@@ -18,10 +18,15 @@ dns_providers = {
     'kube-dns': 'kube-dns.yaml'
 }
 
+
 def main():
-    if render_templates():
-        apply_addons()
-    prune_addons()
+    try:
+        if render_templates():
+            apply_addons()
+        prune_addons()
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
+
 
 def render_templates():
     shutil.rmtree(addon_dir, ignore_errors=True)
@@ -316,7 +321,7 @@ def prune_addons():
         try:
             kubectl(*args)
         except subprocess.CalledProcessError:
-            traceback.print_exc()
+            pass
 
 def kubectl(*args):
     cmd = [os.path.join(os.environ["SNAP"], "kubectl")]
@@ -324,7 +329,13 @@ def kubectl(*args):
     if kubeconfig:
         cmd += ["--kubeconfig", kubeconfig]
     cmd += list(args)
-    return subprocess.check_output(cmd).decode('utf-8')
+    try:
+        return subprocess.check_output(cmd, stderr=subprocess.PIPE).decode('utf-8')
+    except subprocess.CalledProcessError as e:
+        print('cmd {} failed: {}'.format(cmd,
+                                         e.stderr.decode('utf8').strip()),
+              file=sys.stderr)
+        raise
 
 def get_node_count():
     '''Return the number of Kubernetes nodes in the cluster'''

@@ -160,6 +160,8 @@ def render_templates():
             "keystone-server-url", required=True)
         keystone_context['keystone_server_ca'] = get_snap_config(
             "keystone-server-ca", required=False).replace('\n', '')
+        keystone_context['keystone_verbosity'] = get_snap_config(
+            "keystone-verbosity", required=False) or '100'
 
         render_template("keystone-auth-certs-secret.yaml", keystone_context)
         render_template("keystone-deployment.yaml", keystone_context)

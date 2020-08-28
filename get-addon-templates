@@ -278,6 +278,7 @@ def patch_keystone_deployment(repo, file):
             - --keystone-ca-file
             - /etc/kubernetes/pki/ca-file
 {% endif %}
+            - --v={{ keystone_verbosity }}
             - --keystone-url""")
     with open(source, "w") as f:
         f.write(content)

@@ -24,6 +24,7 @@ def main():
         if render_templates():
             apply_addons()
         prune_addons()
+        restart_csi_plugins_if_needed()
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -353,6 +354,44 @@ def get_snap_config(name, required=True):
 
 class MissingSnapConfig(Exception):
     pass
+
+def restart_csi_plugins_if_needed():
+    '''
+    Workaround for https://github.com/kubernetes/kubernetes/issues/94378
+    '''
+    ceph_enabled = get_snap_config("enable-ceph", required=False) == "true"
+
+    if not ceph_enabled:
+        return
+
+    cephfs_enabled = get_snap_config("enable-cephfs", required=False) == "true"
+    output = kubectl("get", "nodes", "-o", "json")
+    nodes = json.loads(output).get('items', [])
+    rbd_restart_needed = False
+    cephfs_restart_needed = False
+
+    for node in nodes:
+        metadata = node.get('metadata', {})
+        name = metadata.get('name')
+        annotations = metadata.get('annotations', {})
+        nodeid_annotation = annotations.get('csi.volume.kubernetes.io/nodeid',
+                                            '{}')
+        nodeid_map = json.loads(nodeid_annotation)
+        if ceph_enabled and 'rbd.csi.ceph.com' not in nodeid_map:
+            print('rbd.csi.ceph.com nodeid missing on node %s' % name)
+            rbd_restart_needed = True
+        if cephfs_enabled and 'cephfs.csi.ceph.com' not in nodeid_map:
+            print('cephfs.csi.ceph.com nodeid missing on node %s' % name)
+            cephfs_restart_needed = True
+
+    if rbd_restart_needed:
+        print('restarting csi-rbdplugin')
+        kubectl("rollout", "restart", "daemonset/csi-rbdplugin")
+
+    if cephfs_restart_needed:
+        print('restarting csi-cephfsplugin')
+        kubectl("rollout", "restart", "daemonset/csi-cephfsplugin")
+
 
 if __name__ == "__main__":
     main()

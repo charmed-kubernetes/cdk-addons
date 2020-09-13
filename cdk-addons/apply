@@ -133,6 +133,7 @@ def render_templates():
             cephfs_context['default'] = (default_storage == 'cephfs')
             cephfs_context['fsname'] = get_snap_config(
                 "ceph-fsname", required=True)
+            cephfs_context['mounter'] = get_snap_config("cephfs-mounter")
             render_template("cephfs/secret.yaml", cephfs_context)
             render_template("cephfs/csi-cephfsplugin.yaml", cephfs_context)
             render_template("cephfs/csi-cephfsplugin-provisioner.yaml", cephfs_context)

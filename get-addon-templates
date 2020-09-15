@@ -246,6 +246,7 @@ def patch_cephfs_storage_class(repo, file):
         manifest = yaml.load(stream)
     manifest['parameters']['monitors'] = "{{ mon_hosts }}"
     manifest['parameters']['pool'] = "ceph-fs_data"
+    manifest['parameters']['mounter'] = "PLACEHOLDER"
     manifest['metadata']['name'] = "cephfs"
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
@@ -257,6 +258,10 @@ def patch_cephfs_storage_class(repo, file):
 {% if default == true %}
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
+{% endif %}""")
+    content = content.replace("  mounter: PLACEHOLDER",
+"""{%  if mounter != "default" %}
+  mounter: {{ mounter }}
 {% endif %}""")
     with open(source, "w") as f:
         f.write(content)

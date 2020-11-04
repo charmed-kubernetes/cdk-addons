@@ -17,6 +17,7 @@ dns_providers = {
     'core-dns': 'core-dns.yaml',
     'kube-dns': 'kube-dns.yaml'
 }
+deletable_namespaces = ["kubernetes-dashboard"]
 
 
 def main():
@@ -305,6 +306,8 @@ def prune_addons():
     )
     data = json.loads(output)
 
+    namespaces_to_delete = set()
+
     for item in data['items']:
         kind = item['kind']
         metadata = item['metadata']
@@ -317,9 +320,19 @@ def prune_addons():
         if (kind, namespace, name) in current_addons:
             continue
 
+        if namespace in deletable_namespaces:
+            namespaces_to_delete.add(namespace)
+
         # it has our label but isn't a current addon, delete it!
         print('Deleting %s %s/%s' % (kind, namespace, name))
         args = ['delete', '--wait=false', kind, name, '-n', namespace]
+        try:
+            kubectl(*args)
+        except subprocess.CalledProcessError:
+            pass
+
+    for namespace_to_delete in namespaces_to_delete:
+        args = ['delete', '--wait=false', 'namespace', namespace_to_delete]
         try:
             kubectl(*args)
         except subprocess.CalledProcessError:

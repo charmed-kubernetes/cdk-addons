@@ -146,10 +146,21 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
         f.write(content)
 
 
+def load_yaml_file_from_repo(repo, file):
+    filepath = os.path.join(repo, file)
+    with open(filepath) as stream:
+        return filepath, yaml.load(stream)
+
+
+def patch_state_metrics_bug_1906303(repo, file):
+    filepath, manifest = load_yaml_file_from_repo(repo, file)
+    manifest["spec"]["template"]["spec"]["containers"][0]['securityContext'] = {"runAsUser":  65534}
+    with open(filepath, 'w') as yaml_file:
+        yaml.dump(manifest, yaml_file, default_flow_style=False)
+
+
 def patch_plugin_manifest(repo, file):
-    source = os.path.join(repo, file)
-    with open(source) as stream:
-        manifest = yaml.load(stream)
+    source, manifest = load_yaml_file_from_repo(repo, file)
     manifest['spec']['template']['spec']['containers'][0]['env'] = \
         [{'name': 'DP_DISABLE_HEALTHCHECKS', 'value': 'xids'}]
     manifest['spec']['template']['spec']['nodeSelector'] = {'gpu': 'true'}
@@ -158,9 +169,7 @@ def patch_plugin_manifest(repo, file):
 
 
 def patch_ceph_secret(repo, file):
-    source = os.path.join(repo, file)
-    with open(source) as stream:
-        manifest = yaml.load(stream)
+    source, manifest = load_yaml_file_from_repo(repo, file)
     manifest['data']['admin'] = "{{ admin_key }}"
     manifest['data']['kubernetes'] = "{{ kubernetes_key }}"
     with open(source, 'w') as yaml_file:
@@ -168,9 +177,7 @@ def patch_ceph_secret(repo, file):
 
 
 def patch_ceph_storage_class(repo, file):
-    source = os.path.join(repo, file)
-    with open(source) as stream:
-        manifest = yaml.load(stream)
+    source, manifest = load_yaml_file_from_repo(repo, file)
     manifest['parameters']['monitors'] = "{{ mon_hosts }}"
     manifest['parameters']['pool'] = "{{ pool_name }}"
     manifest['parameters']['fsType'] = "{{ fs_type }}"
@@ -192,9 +199,7 @@ def patch_ceph_storage_class(repo, file):
 
 
 def patch_cephfs_secret(repo, file):
-    source = os.path.join(repo, file)
-    with open(source) as stream:
-        manifest = yaml.load(stream)
+    source, manifest = load_yaml_file_from_repo(repo, file)
     # TODO: the base64 encoding of the adminID & userID will need to be removed
     # when switching to ceph-csi 2.0.0
     manifest['data']['adminID'] = base64.b64encode(b"admin").decode('utf-8')
@@ -207,9 +212,7 @@ def patch_cephfs_secret(repo, file):
 
 
 def patch_cephfs_storage_class(repo, file):
-    source = os.path.join(repo, file)
-    with open(source) as stream:
-        manifest = yaml.load(stream)
+    source, manifest = load_yaml_file_from_repo(repo, file)
     manifest['parameters']['monitors'] = "{{ mon_hosts }}"
     manifest['parameters']['pool'] = "ceph-fs_data"
     manifest['parameters']['mounter'] = "PLACEHOLDER"
@@ -507,8 +510,10 @@ def get_addon_templates():
         files = ["cluster-role-binding", "cluster-role", "deployment",
                  "service-account", "service"]
         for f in files:
-            add_addon(repo, "examples/standard/{}.yaml".format(f),
-                      "{}/kube-state-metrics-{}.yaml".format(dest, f), base='.')
+            filepath = "examples/standard/{}.yaml".format(f)
+            if f in ("deployment", ):
+                patch_state_metrics_bug_1906303(repo, filepath)
+            add_addon(repo, filepath, "{}/kube-state-metrics-{}.yaml".format(dest, f), base='.')
 
     for template in Path('bundled-templates').iterdir():
         shutil.copy2(str(template), dest)

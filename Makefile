@@ -10,10 +10,10 @@ PWD=$(shell pwd)
 # version matching in ./get-addon-templates. Be careful here, and verify
 # any images we need based on commit are matched/substituted correctly.
 CEPH_CSI_COMMIT=a03675e3aeea093a48c389c5795730445356f3e1  # v2.1.2
-COREDNS_COMMIT=75a1cad61791d38ba955ef29dad0366c9ad6acc4  # v1.6.7
-OPENSTACK_PROVIDER_COMMIT=f571d5f679c2ee157a86c62220deb6772f109db3  # v1.18.0
-KUBE_DASHBOARD_COMMIT=5b83803463d035c089ce505991cb37733ee1668e  # v2.0.1
-KUBE_STATE_METRICS_COMMIT=b3fa5852d755c912c2601c53781a58567c822b81  # v1.9.7
+COREDNS_COMMIT=bfba43007a6afb04826911f9daeb5f303168fbf6  # v1.14.0
+OPENSTACK_PROVIDER_COMMIT=091078831af44b23f07180a21c5895e7c4ce8c09  # v1.20.0
+KUBE_DASHBOARD_COMMIT=0a30039e0111cbfd0c9bb09d6de6649e4a36fc3a  # v2.2.0
+KUBE_STATE_METRICS_COMMIT=e72315512a38653b19dcfe4429f93eadedc0ea96  # v1.9.8
 
 default: prep
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl

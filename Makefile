@@ -10,7 +10,7 @@ PWD=$(shell pwd)
 # version matching in ./get-addon-templates. Be careful here, and verify
 # any images we need based on commit are matched/substituted correctly.
 CEPH_CSI_COMMIT=a03675e3aeea093a48c389c5795730445356f3e1  # v2.1.2
-COREDNS_COMMIT=bfba43007a6afb04826911f9daeb5f303168fbf6  # v1.14.0
+COREDNS_COMMIT=316f8a857c06813cc899267a4428bf5ba4088d87  # v1.8.3
 OPENSTACK_PROVIDER_COMMIT=091078831af44b23f07180a21c5895e7c4ce8c09  # v1.20.0
 KUBE_DASHBOARD_COMMIT=0a30039e0111cbfd0c9bb09d6de6649e4a36fc3a  # v2.2.0
 KUBE_STATE_METRICS_COMMIT=e72315512a38653b19dcfe4429f93eadedc0ea96  # v1.9.8

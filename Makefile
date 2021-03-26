@@ -5,6 +5,10 @@ KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/latest.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)
 
+# cdk-addons release branch for comparing images. By default, this should be
+# set to the previous stable release-1.xx branch.
+PREV_RELEASE=release-1.20
+
 ## Pin some addons to known-good versions
 # NB: If we lock images to commits/versions, this could affect the image
 # version matching in ./get-addon-templates. Be careful here, and verify
@@ -34,7 +38,7 @@ default: prep
 	mv build/*.snap .
 
 clean:
-	@rm -rf ${BUILD} templates
+	@rm -rf ${BUILD} ${PREV_RELEASE} templates
 
 docker: clean
 	docker build -t cdk-addons-builder .
@@ -50,3 +54,15 @@ upstream-images: prep
 # NB: sed cleans up image prefix, quotes, and matches '{{ registry|default('k8s.gcr.io') }}/foo-{{ bar }}:latest', replacing the first {{..}} with the specified default registry
 	$(eval UPSTREAM_IMAGES := $(shell echo ${RAW_IMAGES} | sed -E -e "s/image: //g" -e "s/\{\{ registry\|default\(([^}]*)\) }}/\1/g" -e "s/['\"]//g"))
 	@echo "${KUBE_VERSION}-upstream: ${UPSTREAM_IMAGES}"
+
+compare-prep:
+	git clone --branch ${PREV_RELEASE} --single-branch --depth 1 https://github.com/charmed-kubernetes/cdk-addons.git ${PREV_RELEASE}
+	$(MAKE) -C ${PREV_RELEASE} prep
+
+compare-images: upstream-images compare-prep
+	$(eval PREV_RAW := "$(shell grep -rhoE 'image:.*' ./${PREV_RELEASE}/${BUILD}/templates | sort -u)")
+# NB: sed cleans up image prefix, quotes, and matches '{{ registry|default('k8s.gcr.io') }}/foo-{{ bar }}:latest', replacing the first {{..}} with the specified default registry
+	$(eval PREV_IMAGES := $(shell echo ${PREV_RAW} | sed -E -e "s/image: //g" -e "s/\{\{ registry\|default\(([^}]*)\) }}/\1/g" -e "s/['\"]//g"))
+# NB: compare image lists, only keeping those unique to UPSTREAM_IMAGES
+	$(eval NEW_IMAGES := $(shell bash -c "comm -13 <(echo ${PREV_IMAGES} | tr ' ' '\n' | sort) <(echo ${UPSTREAM_IMAGES} | tr ' ' '\n' | sort) | tr '\n' ' '"))
+	@echo "${KUBE_VERSION}-versus-${PREV_RELEASE}: ${NEW_IMAGES}"

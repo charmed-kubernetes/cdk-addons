@@ -48,7 +48,7 @@ upstream-images: prep
 	@echo "${KUBE_VERSION}-upstream: ${UPSTREAM_IMAGES}"
 
 compare-prep:
-	git clone --branch ${PREV_RELEASE} --single-branch https://github.com/charmed-kubernetes/cdk-addons.git ${PREV_RELEASE}
+	git clone --branch ${PREV_RELEASE} --single-branch --depth 1 https://github.com/charmed-kubernetes/cdk-addons.git ${PREV_RELEASE}
 	$(MAKE) -C ${PREV_RELEASE} prep
 
 compare-images: upstream-images compare-prep

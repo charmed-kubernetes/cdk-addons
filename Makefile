@@ -1,13 +1,13 @@
 BUILD=build
 KUBE_ARCH=amd64
 # NB: change this to ./stable-1.xx.txt on relevant cdk-addons release-1.xx branches
-KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/latest.txt)
+KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable-1.18.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)
 
 # cdk-addons release branch for comparing images. By default, this should be
 # set to the previous stable release-1.xx branch.
-PREV_RELEASE=release-1.20
+PREV_RELEASE=release-1.17
 
 ## Pin some addons to known-good versions
 # NB: If we lock images to commits/versions, this could affect the image

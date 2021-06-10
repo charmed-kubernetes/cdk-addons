@@ -5,7 +5,7 @@ rm -rf "$SNAP_DATA/config"
 mkdir "$SNAP_DATA/config"
 
 for key in arch kubeconfig dns-domain enable-dashboard dns-provider \
-           enable-metrics enable-gpu registry \
+           enable-metrics enable-csi-snapshots enable-gpu registry \
            ceph-admin-key ceph-fsname ceph-fsid ceph-kubernetes-key ceph-mon-hosts ceph-pool-name \
            default-storage enable-ceph enable-keystone keystone-server-url \
            keystone-cert-file keystone-key-file keystone-server-ca \

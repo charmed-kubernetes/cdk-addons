@@ -367,6 +367,13 @@ def get_addon_templates():
         patch_metrics_reader(repo, "metrics-server/resource-reader.yaml")
         add_addon(repo, "metrics-server/resource-reader.yaml", dest)
 
+        # CSI snapshotter
+        add_addon(repo, "volumesnapshots/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml", dest)
+        add_addon(repo, "volumesnapshots/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml", dest)
+        add_addon(repo, "volumesnapshots/crd/snapshot.storage.k8s.io_volumesnapshots.yaml", dest)
+        add_addon(repo, "volumesnapshots/volume-snapshot-controller/rbac-volume-snapshot-controller.yaml", dest)
+        add_addon(repo, "volumesnapshots/volume-snapshot-controller/volume-snapshot-controller-deployment.yaml", dest)
+
     with kubernetes_dashboard_repo() as repo:
         log.info("Copying dashboard to " + dest)
         dashboard_yaml = 'aio/deploy/recommended.yaml'

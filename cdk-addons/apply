@@ -85,6 +85,14 @@ def render_templates():
         for t in kube_state_templates:
             render_template("kube-state-metrics-{}.yaml".format(t), context)
         rendered = True
+    if get_snap_config("enable-csi-snapshots", required=False) == "true":
+        render_template("snapshot.storage.k8s.io_volumesnapshotclasses.yaml", context)
+        render_template("snapshot.storage.k8s.io_volumesnapshotcontents.yaml", context)
+        render_template("snapshot.storage.k8s.io_volumesnapshots.yaml", context)
+        render_template("rbac-volume-snapshot-controller.yaml", context)
+        render_template("volume-snapshot-controller-deployment.yaml", context)
+        # To do: validation webhook
+        rendered = True
     if get_snap_config("enable-ceph", required=False) == "true":
         ceph_context = context.copy()
         default_storage = get_snap_config("default-storage", required=True)

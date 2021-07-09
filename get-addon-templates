@@ -219,6 +219,21 @@ def patch_cephfs_secret(repo, file):
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
 
+def patch_ceph_plugins(repo, file):
+    tolerations = {
+        'tolerations': [
+            {'operator': 'Exists', 'effect': 'NoExecute'},
+            {'operator': 'Exists', 'effect': 'NoSchedule'}
+        ]
+    }
+    filepath = os.path.join(repo, file)
+    with open(filepath) as stream:
+        manifest_list = list(yaml.load_all(stream))
+    manifest_list[0]["spec"]["template"]["spec"].update(tolerations)
+    with open(filepath, 'w') as yaml_file:
+        yaml.dump_all(manifest_list, yaml_file, default_flow_style=False)
+
+
 def patch_cephfs_storage_class(repo, file):
     source, manifest = load_yaml_file_from_repo(repo, file)
     manifest['parameters']['clusterID'] = "{{ fsid }}"
@@ -393,6 +408,7 @@ def get_addon_templates():
         add_addon(repo, "deploy/rbd/kubernetes/csi-config-map.yaml", dest, base='.')
 
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", dest, base='.')
+        patch_ceph_plugins(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml")
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", dest, base='.')
 
         patch_ceph_secret(repo, "examples/rbd/secret.yaml")
@@ -409,6 +425,7 @@ def get_addon_templates():
         cephfs_dest = os.path.join(dest, 'cephfs')
         os.mkdir(cephfs_dest)
         add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml", cephfs_dest, base='.')
+        patch_ceph_plugins(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml")
         add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml", cephfs_dest, base='.')
 
         patch_cephfs_secret(repo, "examples/cephfs/secret.yaml")

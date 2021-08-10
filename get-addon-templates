@@ -222,8 +222,7 @@ def patch_cephfs_secret(repo, file):
 def patch_ceph_plugins(repo, file):
     tolerations = {
         'tolerations': [
-            {'operator': 'Exists', 'effect': 'NoExecute'},
-            {'operator': 'Exists', 'effect': 'NoSchedule'}
+            {'operator': 'Exists'},
         ]
     }
     filepath = os.path.join(repo, file)

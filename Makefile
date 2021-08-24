@@ -4,6 +4,9 @@ KUBE_ARCH=amd64
 KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/latest.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)
+RELEASE_BRANCH=release-$(basename ${KUBE_ERSION})
+LOCAL_BRANCH=$(strip $(shell git symbolic-ref HEAD 2>/dev/null | sed -e 's|^refs/heads/||'))
+REMOTE_BRANCH=$(strip $(shell git branch --list -r '*/'${RELEASE_BRANCH}))
 
 # cdk-addons release branch for comparing images. By default, this should be
 # set to the previous stable release-1.xx branch.
@@ -51,7 +54,14 @@ compare-prep:
 	git clone --branch ${PREV_RELEASE} --single-branch --depth 1 https://github.com/charmed-kubernetes/cdk-addons.git ${PREV_RELEASE}
 	$(MAKE) -C ${PREV_RELEASE} prep
 
-compare-images: upstream-images compare-prep
+branch-matches-version:
+ifneq ($(REMOTE_BRANCH),)
+  ifneq ($(LOCAL_BRANCH),$(RELEASE_BRANCH))
+    $(error Must be on ${RELEASE_BRANCH}, not ${LOCAL_BRANCH})
+  endif
+endif
+
+compare-images: branch-matches-version upstream-images compare-prep
 	$(eval PREV_RAW := "$(shell grep -rhoE 'image:.*' ./${PREV_RELEASE}/${BUILD}/templates | sort -u)")
 # NB: sed cleans up image prefix, quotes, and matches '{{ registry|default('k8s.gcr.io') }}/foo-{{ bar }}:latest', replacing the first {{..}} with the specified default registry
 	$(eval PREV_IMAGES := $(shell echo ${PREV_RAW} | sed -E -e "s/image: //g" -e "s/\{\{ registry\|default\(([^}]*)\) }}/\1/g" -e "s/['\"]//g"))

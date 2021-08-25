@@ -4,6 +4,9 @@ KUBE_ARCH=amd64
 KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable-1.22.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)
+RELEASE_BRANCH=release-$(basename ${KUBE_ERSION})
+LOCAL_BRANCH=$(strip $(shell git symbolic-ref HEAD 2>/dev/null | sed -e 's|^refs/heads/||'))
+REMOTE_BRANCH=$(strip $(shell git branch --list -r '*/'${RELEASE_BRANCH}))
 
 # cdk-addons release branch for comparing images. By default, this should be
 # set to the previous stable release-1.xx branch.

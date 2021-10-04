@@ -55,11 +55,11 @@ compare-prep:
 	$(MAKE) -C ${PREV_RELEASE} prep
 
 branch-matches-version:
-ifneq ($(REMOTE_BRANCH),)
-  ifneq ($(LOCAL_BRANCH),$(RELEASE_BRANCH))
-    $(error Must be on ${RELEASE_BRANCH}, not ${LOCAL_BRANCH})
-  endif
-endif
+    ifneq ($(REMOTE_BRANCH),)
+      ifneq ($(LOCAL_BRANCH),$(RELEASE_BRANCH))
+	$(error Must be on ${RELEASE_BRANCH}, not ${LOCAL_BRANCH})
+      endif
+    endif
 
 compare-images: branch-matches-version upstream-images compare-prep
 	$(eval PREV_RAW := "$(shell grep -rhoE 'image:.*' ./${PREV_RELEASE}/${BUILD}/templates | sort -u)")

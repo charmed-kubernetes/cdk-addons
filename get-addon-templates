@@ -424,8 +424,15 @@ def get_addon_templates():
         patch_openstack_registries(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
 
         add_addon(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml", dest, base='.')
-        add_addon(repo, "cluster/addons/rbac/cloud-controller-manager-role-bindings.yaml", dest, base='.')
-        add_addon(repo, "cluster/addons/rbac/cloud-controller-manager-roles.yaml", dest, base='.')
+        # these manifests were moved in the 1.22 release
+        try:
+            # try the new location first
+            add_addon(repo, "manifests/controller-manager/cloud-controller-manager-role-bindings.yaml", dest, base='.')
+            add_addon(repo, "manifests/controller-manager/cloud-controller-manager-roles.yaml", dest, base='.')
+        except FileNotFoundError:
+            # fall back to the old location
+            add_addon(repo, "cluster/addons/rbac/cloud-controller-manager-role-bindings.yaml", dest, base='.')
+            add_addon(repo, "cluster/addons/rbac/cloud-controller-manager-roles.yaml", dest, base='.')
 
         patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml")
         patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml")

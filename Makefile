@@ -18,7 +18,7 @@ PREV_RELEASE=release-1.20
 # any images we need based on commit are matched/substituted correctly.
 CEPH_CSI_COMMIT=a07260f19153cb6fef7cb27bfb9135082630830e  # v3.3.1
 COREDNS_COMMIT=316f8a857c06813cc899267a4428bf5ba4088d87  # v1.8.3
-OPENSTACK_PROVIDER_COMMIT=091078831af44b23f07180a21c5895e7c4ce8c09  # v1.20.0
+OPENSTACK_PROVIDER_COMMIT=a6a2bea4f376281887c7bcc2d1f612611e5f3dac  # v1.22.0
 KUBE_DASHBOARD_COMMIT=0a30039e0111cbfd0c9bb09d6de6649e4a36fc3a  # v2.2.0
 KUBE_STATE_METRICS_COMMIT=e72315512a38653b19dcfe4429f93eadedc0ea96  # v1.9.8
 
@@ -55,11 +55,11 @@ compare-prep:
 	$(MAKE) -C ${PREV_RELEASE} prep
 
 branch-matches-version:
-ifneq ($(REMOTE_BRANCH),)
-  ifneq ($(LOCAL_BRANCH),$(RELEASE_BRANCH))
-    $(error Must be on ${RELEASE_BRANCH}, not ${LOCAL_BRANCH})
-  endif
-endif
+    ifneq ($(REMOTE_BRANCH),)
+      ifneq ($(LOCAL_BRANCH),$(RELEASE_BRANCH))
+	$(error Must be on ${RELEASE_BRANCH}, not ${LOCAL_BRANCH})
+      endif
+    endif
 
 compare-images: branch-matches-version upstream-images compare-prep
 	$(eval PREV_RAW := "$(shell grep -rhoE 'image:.*' ./${PREV_RELEASE}/${BUILD}/templates | sort -u)")

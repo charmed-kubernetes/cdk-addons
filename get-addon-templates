@@ -252,35 +252,6 @@ def patch_cephfs_storage_class(repo, file):
         f.write(content)
 
 
-def patch_metrics_server(repo, file):
-    source = os.path.join(repo, 'cluster/addons', file)
-    with open(source, "r") as f:
-        content = f.read()
-    # nuke GKE specific stuff
-    content = content.replace("- --kubelet-port=10255", "# - --kubelet-port=10255")
-    content = content.replace("- --deprecated-kubelet-completely-insecure=true", "# - --deprecated-kubelet-completely-insecure=true")
-    with open(source, "w") as f:
-        f.write(content)
-
-
-def patch_metrics_reader(repo, file):
-    # add nodes/stats resource
-    source = os.path.join(repo, 'cluster/addons', file)
-    with open(source) as stream:
-        manifest = list(yaml.safe_load_all(stream))
-    for doc in manifest:
-        if doc['kind'] == 'ClusterRole':
-            for rule in doc['rules']:
-                try:
-                    if '' in rule['apiGroups']:
-                        rule['resources'].append('nodes/stats')
-                except KeyError:
-                    # In 1.19, not all rules have an 'apiGroups' key
-                    continue
-    with open(source, "w") as yaml_file:
-        yaml.dump_all(manifest, yaml_file, default_flow_style=False)
-
-
 def patch_keystone_deployment(repo, file):
     source = os.path.join(repo, file)
     # :-/ Would be nice to be able to add this template a different way
@@ -367,10 +338,8 @@ def get_addon_templates():
         add_addon(repo, "metrics-server/auth-delegator.yaml", dest)
         add_addon(repo, "metrics-server/auth-reader.yaml", dest)
         add_addon(repo, "metrics-server/metrics-apiservice.yaml", dest)
-        patch_metrics_server(repo, "metrics-server/metrics-server-deployment.yaml")
         add_addon(repo, "metrics-server/metrics-server-deployment.yaml", dest)
         add_addon(repo, "metrics-server/metrics-server-service.yaml", dest)
-        patch_metrics_reader(repo, "metrics-server/resource-reader.yaml")
         add_addon(repo, "metrics-server/resource-reader.yaml", dest)
 
     with kubernetes_dashboard_repo() as repo:

@@ -147,13 +147,6 @@ def load_yaml_file_from_repo(repo, file):
         return filepath, yaml.safe_load(stream)
 
 
-def patch_state_metrics_bug_1906303(repo, file):
-    filepath, manifest = load_yaml_file_from_repo(repo, file)
-    manifest["spec"]["template"]["spec"]["containers"][0]['securityContext'] = {"runAsUser":  65534}
-    with open(filepath, 'w') as yaml_file:
-        yaml.dump(manifest, yaml_file, default_flow_style=False)
-
-
 def patch_plugin_manifest(repo, file):
     source, manifest = load_yaml_file_from_repo(repo, file)
     manifest['spec']['template']['spec']['containers'][0]['env'] = \
@@ -345,7 +338,6 @@ def patch_coredns(repo, file):
         content = f.read()
     content = content.replace("CLUSTER_DOMAIN", "{{ pillar['dns_domain'] }}")
     content = content.replace("REVERSE_CIDRS", "in-addr.arpa ip6.arpa")
-    content = content.replace("FEDERATIONS", "")
     content = content.replace("UPSTREAMNAMESERVER", "/etc/resolv.conf")
     content = content.replace("STUBDOMAINS", "")
     content = content.replace("fallthrough in-addr.arpa ip6.arpa",
@@ -469,8 +461,6 @@ def get_addon_templates():
                  "service-account", "service"]
         for f in files:
             filepath = "examples/standard/{}.yaml".format(f)
-            if f in ("deployment", ):
-                patch_state_metrics_bug_1906303(repo, filepath)
             add_addon(repo, filepath, "{}/kube-state-metrics-{}.yaml".format(dest, f), base='.')
 
     for template in Path('bundled-templates').iterdir():

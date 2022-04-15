@@ -144,14 +144,7 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
 def load_yaml_file_from_repo(repo, file):
     filepath = os.path.join(repo, file)
     with open(filepath) as stream:
-        return filepath, yaml.load(stream)
-
-
-def patch_state_metrics_bug_1906303(repo, file):
-    filepath, manifest = load_yaml_file_from_repo(repo, file)
-    manifest["spec"]["template"]["spec"]["containers"][0]['securityContext'] = {"runAsUser":  65534}
-    with open(filepath, 'w') as yaml_file:
-        yaml.dump(manifest, yaml_file, default_flow_style=False)
+        return filepath, yaml.safe_load(stream)
 
 
 def patch_plugin_manifest(repo, file):
@@ -227,7 +220,7 @@ def patch_ceph_plugins(repo, file):
     }
     filepath = os.path.join(repo, file)
     with open(filepath) as stream:
-        manifest_list = list(yaml.load_all(stream))
+        manifest_list = list(yaml.safe_load_all(stream))
     manifest_list[0]["spec"]["template"]["spec"].update(tolerations)
     with open(filepath, 'w') as yaml_file:
         yaml.dump_all(manifest_list, yaml_file, default_flow_style=False)
@@ -257,35 +250,6 @@ def patch_cephfs_storage_class(repo, file):
 {% endif %}""")
     with open(source, "w") as f:
         f.write(content)
-
-
-def patch_metrics_server(repo, file):
-    source = os.path.join(repo, 'cluster/addons', file)
-    with open(source, "r") as f:
-        content = f.read()
-    # nuke GKE specific stuff
-    content = content.replace("- --kubelet-port=10255", "# - --kubelet-port=10255")
-    content = content.replace("- --deprecated-kubelet-completely-insecure=true", "# - --deprecated-kubelet-completely-insecure=true")
-    with open(source, "w") as f:
-        f.write(content)
-
-
-def patch_metrics_reader(repo, file):
-    # add nodes/stats resource
-    source = os.path.join(repo, 'cluster/addons', file)
-    with open(source) as stream:
-        manifest = list(yaml.load_all(stream))
-    for doc in manifest:
-        if doc['kind'] == 'ClusterRole':
-            for rule in doc['rules']:
-                try:
-                    if '' in rule['apiGroups']:
-                        rule['resources'].append('nodes/stats')
-                except KeyError:
-                    # In 1.19, not all rules have an 'apiGroups' key
-                    continue
-    with open(source, "w") as yaml_file:
-        yaml.dump_all(manifest, yaml_file, default_flow_style=False)
 
 
 def patch_keystone_deployment(repo, file):
@@ -345,7 +309,6 @@ def patch_coredns(repo, file):
         content = f.read()
     content = content.replace("CLUSTER_DOMAIN", "{{ pillar['dns_domain'] }}")
     content = content.replace("REVERSE_CIDRS", "in-addr.arpa ip6.arpa")
-    content = content.replace("FEDERATIONS", "")
     content = content.replace("UPSTREAMNAMESERVER", "/etc/resolv.conf")
     content = content.replace("STUBDOMAINS", "")
     content = content.replace("fallthrough in-addr.arpa ip6.arpa",
@@ -375,10 +338,8 @@ def get_addon_templates():
         add_addon(repo, "metrics-server/auth-delegator.yaml", dest)
         add_addon(repo, "metrics-server/auth-reader.yaml", dest)
         add_addon(repo, "metrics-server/metrics-apiservice.yaml", dest)
-        patch_metrics_server(repo, "metrics-server/metrics-server-deployment.yaml")
         add_addon(repo, "metrics-server/metrics-server-deployment.yaml", dest)
         add_addon(repo, "metrics-server/metrics-server-service.yaml", dest)
-        patch_metrics_reader(repo, "metrics-server/resource-reader.yaml")
         add_addon(repo, "metrics-server/resource-reader.yaml", dest)
 
     with kubernetes_dashboard_repo() as repo:
@@ -469,8 +430,6 @@ def get_addon_templates():
                  "service-account", "service"]
         for f in files:
             filepath = "examples/standard/{}.yaml".format(f)
-            if f in ("deployment", ):
-                patch_state_metrics_bug_1906303(repo, filepath)
             add_addon(repo, filepath, "{}/kube-state-metrics-{}.yaml".format(dest, f), base='.')
 
     for template in Path('bundled-templates').iterdir():

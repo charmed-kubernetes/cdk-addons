@@ -10,17 +10,17 @@ REMOTE_BRANCH=$(strip $(shell git branch --list -r '*/'${RELEASE_BRANCH}))
 
 # cdk-addons release branch for comparing images. By default, this should be
 # set to the previous stable release-1.xx branch.
-PREV_RELEASE=release-1.20
+PREV_RELEASE=release-1.23
 
 ## Pin some addons to known-good versions
 # NB: If we lock images to commits/versions, this could affect the image
 # version matching in ./get-addon-templates. Be careful here, and verify
 # any images we need based on commit are matched/substituted correctly.
-CEPH_CSI_COMMIT=a07260f19153cb6fef7cb27bfb9135082630830e  # v3.3.1
-COREDNS_COMMIT=316f8a857c06813cc899267a4428bf5ba4088d87  # v1.8.3
-OPENSTACK_PROVIDER_COMMIT=a6a2bea4f376281887c7bcc2d1f612611e5f3dac  # v1.22.0
-KUBE_DASHBOARD_COMMIT=0a30039e0111cbfd0c9bb09d6de6649e4a36fc3a  # v2.2.0
-KUBE_STATE_METRICS_COMMIT=e72315512a38653b19dcfe4429f93eadedc0ea96  # v1.9.8
+CEPH_CSI_COMMIT=00f88e58a0b08be3d7ea009a0cfde8dca23021bf  # v3.5.1
+COREDNS_COMMIT=cb075b0a3810ccc0cb83339ddbce4b094c8f499b  # v1.9.0
+OPENSTACK_PROVIDER_COMMIT=1b5899e9f4c7c35e98e0be94732a88452b36cd15  # v1.23.1
+KUBE_DASHBOARD_COMMIT=52001304228c58430485674d21458527c8e6d86a  # v2.5.1
+KUBE_STATE_METRICS_COMMIT=ef8bede4064f04472a8c2fe8c281e6bf97de4329  # v2.4.2
 
 default: prep
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl

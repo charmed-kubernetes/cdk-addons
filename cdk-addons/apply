@@ -96,6 +96,8 @@ def render_templates():
             "ceph-kubernetes-key", required=True)).decode('utf-8')
         ceph_context['mon_hosts'] = json.dumps(get_snap_config(
             "ceph-mon-hosts", required=True).split())
+        ceph_context['user'] = get_snap_config(
+            "ceph-user", required=False) or "admin"
 
         render_template("ceph-secret.yaml", ceph_context)
         render_template("csi-config-map.yaml", ceph_context)

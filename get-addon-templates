@@ -358,6 +358,8 @@ def get_addon_templates():
         patch_ceph_config_map(repo, "deploy/rbd/kubernetes/csi-config-map.yaml")
         add_addon(repo, "deploy/rbd/kubernetes/csi-config-map.yaml", dest, base='.')
 
+        add_addon(repo, "examples/ceph-conf.yaml", dest, base='.')
+
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", dest, base='.')
         patch_ceph_plugins(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml")
         add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", dest, base='.')

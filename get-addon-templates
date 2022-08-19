@@ -137,6 +137,9 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     content = re.sub(r"image:\s*kubernetesui/",
                      "image: {{ registry|default('docker.io') }}/kubernetesui/",
                      content)
+    content = re.sub(r"image:\s*registry.k8s.io/",
+                     "image: {{ registry|default('registry.k8s.io') }}/",
+                     content)
     with open(dest, "w") as f:
         f.write(content)
 

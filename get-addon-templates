@@ -74,7 +74,8 @@ kubernetes_dashboard_repo = repo_cloner(
 )
 
 nvidia_plugin_repo = repo_cloner(
-    url="https://github.com/NVIDIA/k8s-device-plugin.git"
+    url="https://github.com/NVIDIA/k8s-device-plugin.git",
+    commit=os.environ["K8S_DEVICE_PLUGIN_COMMIT"]
 )
 
 ceph_csi_repo = repo_cloner(

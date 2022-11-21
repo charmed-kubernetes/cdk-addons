@@ -17,7 +17,7 @@ PREV_RELEASE=release-1.24
 # version matching in ./get-addon-templates. Be careful here, and verify
 # any images we need based on commit are matched/substituted correctly.
 CEPH_CSI_COMMIT=47b59ee5a430f66a88913bea1a6ac1961c8ff552 # v3.7.2
-COREDNS_COMMIT=bfba43007a6afb04826911f9daeb5f303168fbf6 #v1.14.0
+COREDNS_COMMIT=31e9b6e2229300280f9788b1eaf1eb18c1b2d5c6 #v1.9.4
 OPENSTACK_PROVIDER_COMMIT=58b9f9fe82a4e3a697991d68d621b78da75771b0 # v1.25.3
 KUBE_DASHBOARD_COMMIT=42deb6b32a27296ac47d1f9839a68fab6053e5fc # v2.7.0
 KUBE_STATE_METRICS_COMMIT=bc3b98558b4a05fec0ca894ce3a83a8762c83e62 # v2.6.0

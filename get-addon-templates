@@ -123,6 +123,12 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     content = re.sub(r"image:\s*cdkbot/",
                      "image: {{ registry|default('docker.io') }}/cdkbot/",
                      content)
+    # Update k8s.gcr.io images to pull from registry.k8s.io instead to prevent
+    # conflicts where the same image is pulled from two different registries.
+    content = re.sub(r"image:\s*k8s.gcr.io/",
+                     "image: {{ registry|default('registry.k8s.io') }}/",
+                     content)
+    # *.gcr.io substitution must come after the more specific k8s.gcr.io above.
     content = re.sub(r"image:\s*(\w+).gcr.io/",
                      r"image: {{ registry|default('\1.gcr.io') }}/",
                      content)

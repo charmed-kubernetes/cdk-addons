@@ -391,6 +391,8 @@ def get_addon_templates():
         patch_ceph_plugins(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml")
         add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml", cephfs_dest, base='.')
 
+        add_addon(repo, "deploy/cephfs/kubernetes/csidriver.yaml", cephfs_dest, base='.')
+
         patch_cephfs_secret(repo, "examples/cephfs/secret.yaml")
         add_addon(repo, "examples/cephfs/secret.yaml", cephfs_dest, base='.')
 

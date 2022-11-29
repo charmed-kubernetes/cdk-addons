@@ -145,6 +145,7 @@ def render_templates():
             render_template("cephfs/storageclass.yaml", cephfs_context)
             render_template("cephfs/csi-nodeplugin-rbac.yaml", cephfs_context)
             render_template("cephfs/csi-provisioner-rbac.yaml", cephfs_context)
+            render_template("cephfs/csidriver.yaml", cephfs_context)
         rendered = True
     if get_snap_config("enable-keystone", required=False) == "true":
         keystone_context = context.copy()
@@ -296,6 +297,7 @@ def prune_addons():
             'apiservices',
             'clusterroles',
             'clusterrolebindings',
+            'csidrivers',
             'configmaps',
             'daemonsets',
             'deployments',

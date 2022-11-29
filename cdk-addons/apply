@@ -297,6 +297,7 @@ def prune_addons():
             'apiservices',
             'clusterroles',
             'clusterrolebindings',
+            'csidrivers',
             'configmaps',
             'daemonsets',
             'deployments',

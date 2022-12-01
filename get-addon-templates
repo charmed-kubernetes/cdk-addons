@@ -270,7 +270,7 @@ def patch_keystone_deployment(repo, file):
     version = os.environ["K8S_KEYSTONE_AUTH_IMAGE_VER"]
     content = re.sub(
         r"image:.*k8s-keystone-auth:.*",
-        f"image: {{ registry|default('docker.io') }}/k8scloudprovider/k8s-keystone-auth:{version}",
+        "image: {{ registry|default('docker.io') }}/k8scloudprovider/k8s-keystone-auth:" + version,
         content
     )
     content = content.replace("            - --keystone-url",

@@ -54,7 +54,7 @@ upstream-images: prep
 
 compare-prep:
 	git clone --branch ${PREV_RELEASE} --single-branch --depth 1 https://github.com/charmed-kubernetes/cdk-addons.git ${PREV_RELEASE}
-	$(MAKE) -C ${PREV_RELEASE} prep
+	$(MAKE) -C ${PREV_RELEASE} prep KUBE_VERSION=${PREV_RELEASE}
 
 branch-matches-version:
     ifneq ($(REMOTE_BRANCH),)

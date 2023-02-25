@@ -1,7 +1,7 @@
 BUILD=build
 KUBE_ARCH=amd64
 # NB: change this to ./stable-1.xx.txt on relevant cdk-addons release-1.xx branches
-KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/latest.txt)
+KUBE_VERSION=$(shell curl -L https://dl.k8s.io/release/stable-1.25.txt)
 KUBE_ERSION=$(subst v,,${KUBE_VERSION})
 PWD=$(shell pwd)
 RELEASE_BRANCH=release-$(basename ${KUBE_ERSION})

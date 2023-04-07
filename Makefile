@@ -18,11 +18,11 @@ PREV_RELEASE=release-1.26
 # any images we need based on commit are matched/substituted correctly.
 CEPH_CSI_COMMIT=47b59ee5a430f66a88913bea1a6ac1961c8ff552 # v3.7.2
 COREDNS_COMMIT=31e9b6e2229300280f9788b1eaf1eb18c1b2d5c6 #v1.9.4
-OPENSTACK_PROVIDER_COMMIT=58b9f9fe82a4e3a697991d68d621b78da75771b0 # v1.25.3
-K8S_KEYSTONE_AUTH_IMAGE_VER=v1.25.3  # override keystone auth image
+OPENSTACK_PROVIDER_COMMIT=afc4309cbc84c70d475d9f16bc24cd0d5e9ea728 # v1.26.2
+K8S_KEYSTONE_AUTH_IMAGE_VER=v1.26.2  # override keystone auth image
 KUBE_DASHBOARD_COMMIT=42deb6b32a27296ac47d1f9839a68fab6053e5fc # v2.7.0
-KUBE_STATE_METRICS_COMMIT=bc3b98558b4a05fec0ca894ce3a83a8762c83e62 # v2.6.0
-K8S_DEVICE_PLUGIN_COMMIT=06c6e9ad905f97157b9f0e0a19812bc4652f1720 # v0.12.3
+KUBE_STATE_METRICS_COMMIT=3ed7a6c48a64d89c9e82248ffcf98b5cc92e2d11 # v2.8.2
+K8S_DEVICE_PLUGIN_COMMIT=e6c111aff19eab995e8d0f4345169e8c310d2f9c # v0.14.0
 
 default: prep
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl

@@ -270,7 +270,7 @@ def patch_keystone_deployment(repo, file):
     version = os.environ["K8S_KEYSTONE_AUTH_IMAGE_VER"]
     content = re.sub(
         r"image:.*k8s-keystone-auth:.*",
-        "image: {{ registry|default('docker.io') }}/k8scloudprovider/k8s-keystone-auth:" + version,
+        "image: {{ registry|default('registry.k8s.io') }}/provider-os/k8s-keystone-auth:" + version,
         content
     )
     content = content.replace("            - --keystone-url",
@@ -286,8 +286,6 @@ def patch_keystone_deployment(repo, file):
 def patch_openstack_ccm(repo, file):
     source = Path(repo) / file
     content = source.read_text()
-    content = content.replace('      nodeSelector:\n'
-                              '        node-role.kubernetes.io/master: ""\n', '')
     content = content.replace('          args:\n'
                               '            - /bin/openstack-cloud-controller-manager\n',
                               '          args:\n'
@@ -299,8 +297,8 @@ def patch_openstack_ccm(repo, file):
 def patch_openstack_registries(repo, file):
     source = Path(repo) / file
     content = source.read_text()
-    content = content.replace("image: docker.io/k8scloudprovider/",
-                              "image: {{ registry|default('docker.io') }}/k8scloudprovider/")
+    content = content.replace("image: registry.k8s.io/provider-os/",
+                              "image: {{ registry|default('registry.k8s.io') }}/provider-os/")
     content = content.replace("image: quay.io/k8scsi/",
                               "image: {{ registry|default('quay.io') }}/k8scsi/")
     source.write_text(content)

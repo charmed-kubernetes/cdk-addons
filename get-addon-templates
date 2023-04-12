@@ -159,8 +159,6 @@ def load_yaml_file_from_repo(repo, file):
 
 def patch_plugin_manifest(repo, file):
     source, manifest = load_yaml_file_from_repo(repo, file)
-    manifest['spec']['template']['spec']['containers'][0]['env'] = \
-        [{'name': 'DP_DISABLE_HEALTHCHECKS', 'value': 'xids'}]
     manifest['spec']['template']['spec']['nodeSelector'] = {'gpu': 'true'}
     with open(source, 'w') as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)

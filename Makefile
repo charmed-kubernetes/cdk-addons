@@ -10,7 +10,7 @@ REMOTE_BRANCH=$(strip $(shell git branch --list -r '*/'${RELEASE_BRANCH}))
 
 # cdk-addons release branch for comparing images. By default, this should be
 # set to the previous stable release-1.xx branch.
-PREV_RELEASE=release-1.26
+PREV_RELEASE=release-1.27
 
 ## Pin some addons to known-good versions
 # NB: If we lock images to commits/versions, this could affect the image

@@ -5,3 +5,7 @@ metadata:
   annotations:
     juju.io/workload-storage: "true"
 provisioner: cinder.csi.openstack.org
+{% if cinder_availability_zone %}
+parameters:
+  availability: "{{ cinder_availability_zone }}"
+{% endif %}

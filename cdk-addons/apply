@@ -171,6 +171,7 @@ def render_templates():
         openstack_context.update({
             "cloud_conf": get_snap_config("openstack-cloud-conf", required=True),
             "endpoint_ca_cert": get_snap_config("openstack-endpoint-ca", required=False),
+            "cinder_availability_zone": get_snap_config("cinder-availability-zone", required=False),
         })
 
         render_template("cloud-controller-manager-roles.yaml", openstack_context)

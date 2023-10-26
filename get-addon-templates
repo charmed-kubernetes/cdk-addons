@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 import os
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
-import logging
-import yaml
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
 
+import yaml
 
 description = """
 Get addon templates for the snap.
@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 def run_with_logging(command, cwd=None):
-    """ Run a command with controlled logging """
+    """Run a command with controlled logging"""
     log.debug("Running: %s" % command)
     process = subprocess.Popen(command, cwd=cwd, stderr=subprocess.PIPE)
     stderr = process.communicate()[1].rstrip()
@@ -38,16 +38,19 @@ def run_with_logging(command, cwd=None):
 
 @contextmanager
 def cloned_repo(url, branch=None, commit=None):
-    log.info("Cloning %s%s%s" % (
-        url,
-        " branch " + branch if branch else "",
-        " commit " + commit if commit else ""
-    ))
+    log.info(
+        "Cloning %s%s%s"
+        % (
+            url,
+            " branch " + branch if branch else "",
+            " commit " + commit if commit else "",
+        )
+    )
     path = tempfile.mkdtemp(prefix="cdk-addons-cloned-repo")
     try:
         cmd = ["git", "clone", url, path]
         if not commit:
-            cmd += ['--single-branch', '--depth', '1']
+            cmd += ["--single-branch", "--depth", "1"]
         if branch:
             cmd += ["-b", branch]
         run_with_logging(cmd)
@@ -65,45 +68,43 @@ def repo_cloner(*args, **kwargs):
 
 kubernetes_repo = repo_cloner(
     url="https://github.com/kubernetes/kubernetes.git",
-    branch=os.environ["KUBE_VERSION"]
+    branch=os.environ["KUBE_VERSION"],
 )
 
 kubernetes_dashboard_repo = repo_cloner(
     url="https://github.com/kubernetes/dashboard.git",
-    commit=os.environ["KUBE_DASHBOARD_COMMIT"]
+    commit=os.environ["KUBE_DASHBOARD_COMMIT"],
 )
 
 nvidia_plugin_repo = repo_cloner(
     url="https://github.com/NVIDIA/k8s-device-plugin.git",
-    commit=os.environ["K8S_DEVICE_PLUGIN_COMMIT"]
+    commit=os.environ["K8S_DEVICE_PLUGIN_COMMIT"],
 )
 
 ceph_csi_repo = repo_cloner(
-    url="http://github.com/ceph/ceph-csi.git",
-    commit=os.environ["CEPH_CSI_COMMIT"]
+    url="http://github.com/ceph/ceph-csi.git", commit=os.environ["CEPH_CSI_COMMIT"]
 )
 
 cloud_provider_openstack_repo = repo_cloner(
     url="https://github.com/kubernetes/cloud-provider-openstack.git",
-    commit=os.environ["OPENSTACK_PROVIDER_COMMIT"]
+    commit=os.environ["OPENSTACK_PROVIDER_COMMIT"],
 )
 
 coredns_repo = repo_cloner(
-    url="https://github.com/coredns/deployment.git",
-    commit=os.environ["COREDNS_COMMIT"]
+    url="https://github.com/coredns/deployment.git", commit=os.environ["COREDNS_COMMIT"]
 )
 
 kube_state_metrics_repo = repo_cloner(
     url="https://github.com/kubernetes/kube-state-metrics.git",
-    commit=os.environ["KUBE_STATE_METRICS_COMMIT"]
+    commit=os.environ["KUBE_STATE_METRICS_COMMIT"],
 )
 
 
-def add_addon(repo, source, dest, required=True, base='cluster/addons'):
-    """ Add an addon template from the given repo and source.
+def add_addon(repo, source, dest, required=True, base="cluster/addons"):
+    """Add an addon template from the given repo and source.
 
     Any occurrences of 'amd64' are replaced with '{{ arch }}' so the snap can
-    fill it in from config. """
+    fill it in from config."""
     source = os.path.join(repo, base, source)
     if not os.path.exists(source) and not required:
         return
@@ -113,40 +114,55 @@ def add_addon(repo, source, dest, required=True, base='cluster/addons'):
     with open(source, "r") as f:
         content = f.read()
     content = content.replace("amd64", "{{ arch }}")
-    content = content.replace("clusterIP: {{ pillar['dns_server'] }}", "# clusterIP: {{ pillar['dns_server'] }}")
+    content = content.replace(
+        "clusterIP: {{ pillar['dns_server'] }}",
+        "# clusterIP: {{ pillar['dns_server'] }}",
+    )
     content = re.sub(
-        r'(image:.*)addon-resizer:1\..*',
+        r"(image:.*)addon-resizer:1\..*",
         r"image: {{ registry|default('rocks.canonical.com/cdk') }}/addon-resizer-{{ arch }}:1.8.9",
-        content
+        content,
     )
     # Make sure images come from the configured registry (or use the default)
-    content = re.sub(r"image:\s*cdkbot/",
-                     "image: {{ registry|default('docker.io') }}/cdkbot/",
-                     content)
+    content = re.sub(
+        r"image:\s*cdkbot/",
+        "image: {{ registry|default('docker.io') }}/cdkbot/",
+        content,
+    )
     # Update k8s.gcr.io images to pull from registry.k8s.io instead to prevent
     # conflicts where the same image is pulled from two different registries.
-    content = re.sub(r"image:\s*k8s.gcr.io/",
-                     "image: {{ registry|default('registry.k8s.io') }}/",
-                     content)
+    content = re.sub(
+        r"image:\s*k8s.gcr.io/",
+        "image: {{ registry|default('registry.k8s.io') }}/",
+        content,
+    )
     # *.gcr.io substitution must come after the more specific k8s.gcr.io above.
-    content = re.sub(r"image:\s*(\w+).gcr.io/",
-                     r"image: {{ registry|default('\1.gcr.io') }}/",
-                     content)
-    content = re.sub(r"image:\s*nvidia/",
-                     "image: {{ registry|default('docker.io') }}/nvidia/",
-                     content)
-    content = re.sub(r"image:\s*nvcr.io/",
-                     "image: {{ registry|default('nvcr.io') }}/",
-                     content)
-    content = re.sub(r"image:\s*quay.io/",
-                     "image: {{ registry|default('quay.io') }}/",
-                     content)
-    content = re.sub(r"image:\s*kubernetesui/",
-                     "image: {{ registry|default('docker.io') }}/kubernetesui/",
-                     content)
-    content = re.sub(r"image:\s*registry.k8s.io/",
-                     "image: {{ registry|default('registry.k8s.io') }}/",
-                     content)
+    content = re.sub(
+        r"image:\s*(\w+).gcr.io/",
+        r"image: {{ registry|default('\1.gcr.io') }}/",
+        content,
+    )
+    content = re.sub(
+        r"image:\s*nvidia/",
+        "image: {{ registry|default('docker.io') }}/nvidia/",
+        content,
+    )
+    content = re.sub(
+        r"image:\s*nvcr.io/", "image: {{ registry|default('nvcr.io') }}/", content
+    )
+    content = re.sub(
+        r"image:\s*quay.io/", "image: {{ registry|default('quay.io') }}/", content
+    )
+    content = re.sub(
+        r"image:\s*kubernetesui/",
+        "image: {{ registry|default('docker.io') }}/kubernetesui/",
+        content,
+    )
+    content = re.sub(
+        r"image:\s*registry.k8s.io/",
+        "image: {{ registry|default('registry.k8s.io') }}/",
+        content,
+    )
     with open(dest, "w") as f:
         f.write(content)
 
@@ -159,8 +175,8 @@ def load_yaml_file_from_repo(repo, file):
 
 def patch_plugin_manifest(repo, file):
     source, manifest = load_yaml_file_from_repo(repo, file)
-    manifest['spec']['template']['spec']['nodeSelector'] = {'gpu': 'true'}
-    with open(source, 'w') as yaml_file:
+    manifest["spec"]["template"]["spec"]["nodeSelector"] = {"gpu": "true"}
+    with open(source, "w") as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
 
@@ -168,94 +184,105 @@ def patch_ceph_config_map(repo, file):
     source = os.path.join(repo, file)
     with open(source, "r") as f:
         content = f.read()
-    content = content.replace("config.json: |-\n    []", """config.json: |-
+    content = content.replace(
+        "config.json: |-\n    []",
+        """config.json: |-
     [
       {
         "clusterID": "{{ fsid }}",
         "monitors": {{ mon_hosts }}
       }
-    ]""")
+    ]""",
+    )
     with open(source, "w") as f:
         f.write(content)
 
 
 def patch_ceph_secret(repo, file):
     source, manifest = load_yaml_file_from_repo(repo, file)
-    manifest['stringData']['userID'] = "{{ user }}"
-    manifest['stringData']['userKey'] = "{{ kubernetes_key }}"
-    del manifest['stringData']['encryptionPassphrase']
-    with open(source, 'w') as yaml_file:
+    manifest["stringData"]["userID"] = "{{ user }}"
+    manifest["stringData"]["userKey"] = "{{ kubernetes_key }}"
+    del manifest["stringData"]["encryptionPassphrase"]
+    with open(source, "w") as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
 
 def patch_ceph_storage_class(repo, file):
     source, manifest = load_yaml_file_from_repo(repo, file)
-    manifest['parameters']['clusterID'] = "{{ fsid }}"
-    manifest['parameters']['pool'] = "{{ pool_name }}"
-    manifest['parameters']['csi.storage.k8s.io/fstype'] = "{{ fs_type }}"
-    manifest['metadata']['name'] = "{{ sc_name }}"
-    with open(source, 'w') as yaml_file:
+    manifest["parameters"]["clusterID"] = "{{ fsid }}"
+    manifest["parameters"]["pool"] = "{{ pool_name }}"
+    manifest["parameters"]["csi.storage.k8s.io/fstype"] = "{{ fs_type }}"
+    manifest["metadata"]["name"] = "{{ sc_name }}"
+    with open(source, "w") as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
     # :-/ Would be nice to be able to add this template a different way
     with open(source, "r") as f:
         content = f.read()
-    content = content.replace("metadata:", """metadata:
+    content = content.replace(
+        "metadata:",
+        """metadata:
 {% if default == true %}
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
-{% endif %}""")
+{% endif %}""",
+    )
     with open(source, "w") as f:
         f.write(content)
 
 
 def patch_cephfs_secret(repo, file):
     source, manifest = load_yaml_file_from_repo(repo, file)
-    manifest['stringData']['adminID'] = "{{ user }}"
-    manifest['stringData']['adminKey'] = "{{ admin_key }}"
+    manifest["stringData"]["adminID"] = "{{ user }}"
+    manifest["stringData"]["adminKey"] = "{{ admin_key }}"
     # k8s-master just passes in the admin key for both
-    manifest['stringData']['userID'] = "{{ user }}"
-    manifest['stringData']['userKey'] = "{{ kubernetes_key }}"
-    with open(source, 'w') as yaml_file:
+    manifest["stringData"]["userID"] = "{{ user }}"
+    manifest["stringData"]["userKey"] = "{{ kubernetes_key }}"
+    with open(source, "w") as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
 
 def patch_ceph_plugins(repo, file):
     tolerations = {
-        'tolerations': [
-            {'operator': 'Exists'},
+        "tolerations": [
+            {"operator": "Exists"},
         ]
     }
     filepath = os.path.join(repo, file)
     with open(filepath) as stream:
         manifest_list = list(yaml.safe_load_all(stream))
     manifest_list[0]["spec"]["template"]["spec"].update(tolerations)
-    with open(filepath, 'w') as yaml_file:
+    with open(filepath, "w") as yaml_file:
         yaml.dump_all(manifest_list, yaml_file, default_flow_style=False)
 
 
 def patch_cephfs_storage_class(repo, file):
     source, manifest = load_yaml_file_from_repo(repo, file)
-    manifest['parameters']['clusterID'] = "{{ fsid }}"
-    manifest['parameters']['fsName'] = "{{ fsname }}"
-    manifest['parameters']['pool'] = "ceph-fs_data"
-    manifest['parameters']['mounter'] = "PLACEHOLDER"
-    manifest['metadata']['name'] = "cephfs"
-    with open(source, 'w') as yaml_file:
+    manifest["parameters"]["clusterID"] = "{{ fsid }}"
+    manifest["parameters"]["fsName"] = "{{ fsname }}"
+    manifest["parameters"]["pool"] = "ceph-fs_data"
+    manifest["parameters"]["mounter"] = "PLACEHOLDER"
+    manifest["metadata"]["name"] = "cephfs"
+    with open(source, "w") as yaml_file:
         yaml.dump(manifest, yaml_file, default_flow_style=False)
 
     # :-/ Would be nice to be able to add this template a different way
     with open(source, "r") as f:
         content = f.read()
-    content = content.replace("metadata:", """metadata:
+    content = content.replace(
+        "metadata:",
+        """metadata:
 {% if default == true %}
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
-{% endif %}""")
-    content = content.replace("  mounter: PLACEHOLDER",
-"""{%  if mounter != "default" %}
+{% endif %}""",
+    )
+    content = content.replace(
+        "  mounter: PLACEHOLDER",
+        """{%  if mounter != "default" %}
   mounter: {{ mounter }}
-{% endif %}""")
+{% endif %}""",
+    )
     with open(source, "w") as f:
         f.write(content)
 
@@ -268,15 +295,18 @@ def patch_keystone_deployment(repo, file):
     version = os.environ["K8S_KEYSTONE_AUTH_IMAGE_VER"]
     content = re.sub(
         r"image:.*k8s-keystone-auth:.*",
-        "image: {{ registry|default('registry.k8s.io') }}/provider-os/k8s-keystone-auth:" + version,
-        content
+        "image: {{ registry|default('registry.k8s.io') }}/provider-os/k8s-keystone-auth:"
+        + version,
+        content,
     )
-    content = content.replace("            - --keystone-url",
-                              """{% if keystone_server_ca %}
+    content = content.replace(
+        "            - --keystone-url",
+        """{% if keystone_server_ca %}
             - --keystone-ca-file
             - /etc/pki/ca.crt
 {% endif %}
-            - --keystone-url""")
+            - --keystone-url""",
+    )
     with open(source, "w") as f:
         f.write(content)
 
@@ -284,20 +314,23 @@ def patch_keystone_deployment(repo, file):
 def patch_openstack_ccm(repo, file):
     source = Path(repo) / file
     content = source.read_text()
-    content = content.replace('            - name: CLUSTER_NAME\n'
-                              '              value: kubernetes\n',
-                              '            - name: CLUSTER_NAME\n'
-                              '              value: {{ cluster_tag }}\n')
+    content = content.replace(
+        "            - name: CLUSTER_NAME\n" "              value: kubernetes\n",
+        "            - name: CLUSTER_NAME\n" "              value: {{ cluster_tag }}\n",
+    )
     source.write_text(content)
 
 
 def patch_openstack_registries(repo, file):
     source = Path(repo) / file
     content = source.read_text()
-    content = content.replace("image: registry.k8s.io/provider-os/",
-                              "image: {{ registry|default('registry.k8s.io') }}/provider-os/")
-    content = content.replace("image: quay.io/k8scsi/",
-                              "image: {{ registry|default('quay.io') }}/k8scsi/")
+    content = content.replace(
+        "image: registry.k8s.io/provider-os/",
+        "image: {{ registry|default('registry.k8s.io') }}/provider-os/",
+    )
+    content = content.replace(
+        "image: quay.io/k8scsi/", "image: {{ registry|default('quay.io') }}/k8scsi/"
+    )
     source.write_text(content)
 
 
@@ -305,9 +338,11 @@ def patch_dashboard(repo, file):
     source = os.path.join(repo, file)
     with open(source, "r") as f:
         content = f.read()
-    content = content.replace("- --auto-generate-certificates",
-                              """- --auto-generate-certificates
-            - --authentication-mode={{ dashboard_auth }}""")
+    content = content.replace(
+        "- --auto-generate-certificates",
+        """- --auto-generate-certificates
+            - --authentication-mode={{ dashboard_auth }}""",
+    )
     with open(source, "w") as f:
         f.write(content)
 
@@ -320,22 +355,25 @@ def patch_coredns(repo, file):
     content = content.replace("REVERSE_CIDRS", "in-addr.arpa ip6.arpa")
     content = content.replace("UPSTREAMNAMESERVER", "/etc/resolv.conf")
     content = content.replace("STUBDOMAINS", "")
-    content = content.replace("fallthrough in-addr.arpa ip6.arpa",
-                              "fallthrough in-addr.arpa ip6.arpa\n\
-          pods insecure")
+    content = content.replace(
+        "fallthrough in-addr.arpa ip6.arpa",
+        "fallthrough in-addr.arpa ip6.arpa\n\
+          pods insecure",
+    )
     # Let Kubernetes handle the service IP. When upgrading from kube-dns it
     # will stay the same on its own.
     content = content.replace("clusterIP: CLUSTER_DNS_IP", "#clusterIP: CLUSTER_DNS_IP")
     content = content.replace(
         "image: coredns/coredns",
-        "image: {{ registry|default('docker.io') }}/coredns/coredns")
+        "image: {{ registry|default('docker.io') }}/coredns/coredns",
+    )
     with open(source, "w") as f:
         f.write(content)
 
 
 def get_addon_templates():
-    """ Get addon templates. This will clone the kubernetes repo from upstream
-    and copy addons to ./templates """
+    """Get addon templates. This will clone the kubernetes repo from upstream
+    and copy addons to ./templates"""
     dest = os.path.abspath("templates")
     os.mkdir(dest)
     with kubernetes_repo() as repo:
@@ -353,110 +391,220 @@ def get_addon_templates():
 
     with kubernetes_dashboard_repo() as repo:
         log.info("Copying dashboard to " + dest)
-        dashboard_yaml = 'aio/deploy/recommended.yaml'
+        dashboard_yaml = "aio/deploy/recommended.yaml"
         patch_dashboard(repo, dashboard_yaml)
-        add_addon(repo, dashboard_yaml, os.path.join(dest, 'kubernetes-dashboard.yaml'), base='.')
+        add_addon(
+            repo,
+            dashboard_yaml,
+            os.path.join(dest, "kubernetes-dashboard.yaml"),
+            base=".",
+        )
 
     with nvidia_plugin_repo() as repo:
         log.info("Copying nvidia plugin to " + dest)
         patch_plugin_manifest(repo, "nvidia-device-plugin.yml")
-        add_addon(repo, "nvidia-device-plugin.yml", dest, base='.')
+        add_addon(repo, "nvidia-device-plugin.yml", dest, base=".")
 
     with ceph_csi_repo() as repo:
         log.info("Copying ceph CSI templates to " + dest)
         patch_ceph_config_map(repo, "deploy/rbd/kubernetes/csi-config-map.yaml")
-        add_addon(repo, "deploy/rbd/kubernetes/csi-config-map.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/csi-config-map.yaml", dest, base=".")
 
-        add_addon(repo, "examples/ceph-conf.yaml", dest, base='.')
+        add_addon(repo, "examples/ceph-conf.yaml", dest, base=".")
 
-        add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", dest, base='.')
+        add_addon(
+            repo, "deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml", dest, base="."
+        )
         patch_ceph_plugins(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml")
-        add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", dest, base='.')
+        add_addon(repo, "deploy/rbd/kubernetes/csi-rbdplugin.yaml", dest, base=".")
 
         patch_ceph_secret(repo, "examples/rbd/secret.yaml")
-        add_addon(repo, "examples/rbd/secret.yaml", os.path.join(dest, "ceph-secret.yaml"), base='.')
+        add_addon(
+            repo,
+            "examples/rbd/secret.yaml",
+            os.path.join(dest, "ceph-secret.yaml"),
+            base=".",
+        )
 
         patch_ceph_storage_class(repo, "examples/rbd/storageclass.yaml")
-        add_addon(repo, "examples/rbd/storageclass.yaml", os.path.join(dest, "ceph-storageclass.yaml"), base='.')
+        add_addon(
+            repo,
+            "examples/rbd/storageclass.yaml",
+            os.path.join(dest, "ceph-storageclass.yaml"),
+            base=".",
+        )
 
         # rbac templates
-        add_addon(repo, "deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml", dest, base='.')
-        add_addon(repo, "deploy/rbd/kubernetes/csi-provisioner-rbac.yaml", dest, base='.')
+        add_addon(
+            repo, "deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml", dest, base="."
+        )
+        add_addon(
+            repo, "deploy/rbd/kubernetes/csi-provisioner-rbac.yaml", dest, base="."
+        )
 
         log.info("Copying CephFS CSI templates to " + dest)
-        cephfs_dest = os.path.join(dest, 'cephfs')
+        cephfs_dest = os.path.join(dest, "cephfs")
         os.mkdir(cephfs_dest)
-        add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml", cephfs_dest, base='.')
+        add_addon(
+            repo,
+            "deploy/cephfs/kubernetes/csi-cephfsplugin-provisioner.yaml",
+            cephfs_dest,
+            base=".",
+        )
         patch_ceph_plugins(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml")
-        add_addon(repo, "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml", cephfs_dest, base='.')
+        add_addon(
+            repo,
+            "deploy/cephfs/kubernetes/csi-cephfsplugin.yaml",
+            cephfs_dest,
+            base=".",
+        )
 
-        add_addon(repo, "deploy/cephfs/kubernetes/csidriver.yaml", cephfs_dest, base='.')
+        add_addon(
+            repo, "deploy/cephfs/kubernetes/csidriver.yaml", cephfs_dest, base="."
+        )
 
         patch_cephfs_secret(repo, "examples/cephfs/secret.yaml")
-        add_addon(repo, "examples/cephfs/secret.yaml", cephfs_dest, base='.')
+        add_addon(repo, "examples/cephfs/secret.yaml", cephfs_dest, base=".")
 
         patch_cephfs_storage_class(repo, "examples/cephfs/storageclass.yaml")
-        add_addon(repo, "examples/cephfs/storageclass.yaml", cephfs_dest, base='.')
+        add_addon(repo, "examples/cephfs/storageclass.yaml", cephfs_dest, base=".")
 
         # rbac templates
-        add_addon(repo, "deploy/cephfs/kubernetes/csi-nodeplugin-rbac.yaml", cephfs_dest, base='.')
-        add_addon(repo, "deploy/cephfs/kubernetes/csi-provisioner-rbac.yaml", cephfs_dest, base='.')
+        add_addon(
+            repo,
+            "deploy/cephfs/kubernetes/csi-nodeplugin-rbac.yaml",
+            cephfs_dest,
+            base=".",
+        )
+        add_addon(
+            repo,
+            "deploy/cephfs/kubernetes/csi-provisioner-rbac.yaml",
+            cephfs_dest,
+            base=".",
+        )
 
     with cloud_provider_openstack_repo() as repo:
-        log.info("Copying openstack tempates to " + dest)
+        log.info("Copying openstack templates to " + dest)
         patch_keystone_deployment(repo, "examples/webhook/keystone-deployment.yaml")
 
-        add_addon(repo, "examples/webhook/keystone-deployment.yaml", dest, base='.')
-        add_addon(repo, "examples/webhook/keystone-service.yaml", dest, base='.')
-        add_addon(repo, "examples/webhook/keystone-rbac.yaml", dest, base='.')
+        add_addon(repo, "examples/webhook/keystone-deployment.yaml", dest, base=".")
+        add_addon(repo, "examples/webhook/keystone-service.yaml", dest, base=".")
+        add_addon(repo, "examples/webhook/keystone-rbac.yaml", dest, base=".")
 
-        patch_openstack_ccm(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
-        patch_openstack_registries(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml")
+        patch_openstack_ccm(
+            repo,
+            "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml",
+        )
+        patch_openstack_registries(
+            repo,
+            "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml",
+        )
 
-        add_addon(repo, "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml", dest, base='.')
+        add_addon(
+            repo,
+            "manifests/controller-manager/openstack-cloud-controller-manager-ds.yaml",
+            dest,
+            base=".",
+        )
         # these manifests were moved in the 1.22 release
         try:
             # try the new location first
-            add_addon(repo, "manifests/controller-manager/cloud-controller-manager-role-bindings.yaml", dest, base='.')
-            add_addon(repo, "manifests/controller-manager/cloud-controller-manager-roles.yaml", dest, base='.')
+            add_addon(
+                repo,
+                "manifests/controller-manager/cloud-controller-manager-role-bindings.yaml",
+                dest,
+                base=".",
+            )
+            add_addon(
+                repo,
+                "manifests/controller-manager/cloud-controller-manager-roles.yaml",
+                dest,
+                base=".",
+            )
         except FileNotFoundError:
             # fall back to the old location
-            add_addon(repo, "cluster/addons/rbac/cloud-controller-manager-role-bindings.yaml", dest, base='.')
-            add_addon(repo, "cluster/addons/rbac/cloud-controller-manager-roles.yaml", dest, base='.')
+            add_addon(
+                repo,
+                "cluster/addons/rbac/cloud-controller-manager-role-bindings.yaml",
+                dest,
+                base=".",
+            )
+            add_addon(
+                repo,
+                "cluster/addons/rbac/cloud-controller-manager-roles.yaml",
+                dest,
+                base=".",
+            )
 
-        patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml")
-        patch_openstack_registries(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml")
+        patch_openstack_registries(
+            repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml"
+        )
+        patch_openstack_registries(
+            repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml"
+        )
 
-        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin-rbac.yaml", dest, base='.')
-        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml", dest, base='.')
-        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin-rbac.yaml", dest, base='.')
-        add_addon(repo, "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml", dest, base='.')
+        add_addon(
+            repo,
+            "manifests/cinder-csi-plugin/cinder-csi-controllerplugin-rbac.yaml",
+            dest,
+            base=".",
+        )
+        add_addon(
+            repo,
+            "manifests/cinder-csi-plugin/cinder-csi-controllerplugin.yaml",
+            dest,
+            base=".",
+        )
+        add_addon(
+            repo,
+            "manifests/cinder-csi-plugin/cinder-csi-nodeplugin-rbac.yaml",
+            dest,
+            base=".",
+        )
+        add_addon(
+            repo,
+            "manifests/cinder-csi-plugin/cinder-csi-nodeplugin.yaml",
+            dest,
+            base=".",
+        )
 
     with coredns_repo() as repo:
         log.info("Copying coredns template to " + dest)
         patch_coredns(repo, "kubernetes/coredns.yaml.sed")
-        add_addon(repo, "kubernetes/coredns.yaml.sed", dest + "/core-dns.yaml", base='.')
+        add_addon(
+            repo, "kubernetes/coredns.yaml.sed", dest + "/core-dns.yaml", base="."
+        )
 
     with kube_state_metrics_repo() as repo:
         # kube-state-metrics
-        files = ["cluster-role-binding", "cluster-role", "deployment",
-                 "service-account", "service"]
+        files = [
+            "cluster-role-binding",
+            "cluster-role",
+            "deployment",
+            "service-account",
+            "service",
+        ]
         for f in files:
             filepath = "examples/standard/{}.yaml".format(f)
-            add_addon(repo, filepath, "{}/kube-state-metrics-{}.yaml".format(dest, f), base='.')
+            add_addon(
+                repo,
+                filepath,
+                "{}/kube-state-metrics-{}.yaml".format(dest, f),
+                base=".",
+            )
 
-    for template in Path('bundled-templates').iterdir():
+    for template in Path("bundled-templates").iterdir():
         shutil.copy2(str(template), dest)
 
 
 def parse_args():
-    """ Parse args. This is solely done for the usage output with -h """
+    """Parse args. This is solely done for the usage output with -h"""
     parser = argparse.ArgumentParser(description=description)
     parser.parse_args()
 
 
 def main():
-    """ Parse args and get the addon templates """
+    """Parse args and get the addon templates"""
     parse_args()
     get_addon_templates()
 

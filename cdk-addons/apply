@@ -285,8 +285,8 @@ def prune_addons():
     """Deletes addons that have the cdk-addons=true label, but do not exist in
     the template dir.
 
-    Ignores the addons that are in the ignored_resources list by removing the
-    cdk-addons- label.
+    Ignores addons that are in the ignored_addons set by removing the
+    labels cdk-addons and cdk-restart-on-ca-change.
 
     We used to use kubectl apply --prune for this. Now we don't, because
     kubectl apply --prune is very, very disappointing.
@@ -381,7 +381,7 @@ def prune_addons():
         if resource in ignored_addons:
             # either actively ignore it
             print("Ignoring %s %s/%s" % resource)
-            args = ["label", kind, name, "-n", namespace, "cdk-addons-"]
+            args = ["label", kind, name, "-n", namespace, "cdk-addons-", "cdk-restart-on-ca-change-"]
         else:
             # or delete it!
             print("Deleting %s %s/%s" % resource)

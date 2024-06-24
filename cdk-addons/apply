@@ -25,7 +25,6 @@ def main():
         if render_templates():
             apply_addons()
         prune_addons()
-        restart_csi_plugins_if_needed()
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
@@ -310,12 +309,13 @@ def prune_addons():
         name = part["metadata"]["name"]
         addon_set.add((kind, namespace, name))
 
-    def _assemble_addons(addon_set, path):
-        for root, _, filenames in os.walk(addon_dir):
+    def _assemble_addons(addon_set, head_dir):
+        for root, _, filenames in os.walk(head_dir):
             for filename in filenames:
                 path = os.path.join(root, filename)
                 with open(path) as f:
                     data = yaml.safe_load_all(f)
+                    print("  from %s" % path)
                     for part in data:
                         kind = part["kind"]
                         if kind == "List":
@@ -326,7 +326,9 @@ def prune_addons():
                             # yaml is a set of joined parts
                             _include_addon(addon_set, part)
 
+    print("Checking for addons not to prune")
     _assemble_addons(current_addons, addon_dir)
+    print("Checking for addons to ignore")
     _assemble_addons(ignored_addons, retired_dir)
 
     output = kubectl(
@@ -433,42 +435,6 @@ def get_snap_config(name, required=True):
 class MissingSnapConfig(Exception):
     pass
 
-
-def restart_csi_plugins_if_needed():
-    """
-    Workaround for https://github.com/kubernetes/kubernetes/issues/94378
-    """
-    ceph_enabled = get_snap_config("enable-ceph", required=False) == "true"
-
-    if not ceph_enabled:
-        return
-
-    cephfs_enabled = get_snap_config("enable-cephfs", required=False) == "true"
-    output = kubectl("get", "nodes", "-o", "json")
-    nodes = json.loads(output).get("items", [])
-    rbd_restart_needed = False
-    cephfs_restart_needed = False
-
-    for node in nodes:
-        metadata = node.get("metadata", {})
-        name = metadata.get("name")
-        annotations = metadata.get("annotations", {})
-        nodeid_annotation = annotations.get("csi.volume.kubernetes.io/nodeid", "{}")
-        nodeid_map = json.loads(nodeid_annotation)
-        if ceph_enabled and "rbd.csi.ceph.com" not in nodeid_map:
-            print("rbd.csi.ceph.com nodeid missing on node %s" % name)
-            rbd_restart_needed = True
-        if cephfs_enabled and "cephfs.csi.ceph.com" not in nodeid_map:
-            print("cephfs.csi.ceph.com nodeid missing on node %s" % name)
-            cephfs_restart_needed = True
-
-    if rbd_restart_needed:
-        print("restarting csi-rbdplugin")
-        kubectl("rollout", "restart", "daemonset/csi-rbdplugin")
-
-    if cephfs_restart_needed:
-        print("restarting csi-cephfsplugin")
-        kubectl("rollout", "restart", "daemonset/csi-cephfsplugin")
 
 
 if __name__ == "__main__":

@@ -326,9 +326,9 @@ def prune_addons():
                             # yaml is a set of joined parts
                             _include_addon(addon_set, part)
 
-    def _try_kubectl(args):
+    def _try_kubectl(*args):
         try:
-            kubectl(args)
+            kubectl(*args)
         except subprocess.CalledProcessError:
             pass
 

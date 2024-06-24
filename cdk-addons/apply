@@ -326,6 +326,12 @@ def prune_addons():
                             # yaml is a set of joined parts
                             _include_addon(addon_set, part)
 
+    def _try_kubectl(args):
+        try:
+            kubectl(args)
+        except subprocess.CalledProcessError:
+            pass
+
     print("Checking for addons not to prune")
     _assemble_addons(current_addons, addon_dir)
     print("Checking for addons to ignore")
@@ -374,30 +380,22 @@ def prune_addons():
         if resource in current_addons:
             continue
 
-        if namespace in deletable_namespaces:
-            namespaces_to_delete.add(namespace)
-
         # it has our label but isn't a current addon
         if resource in ignored_addons:
             # either actively ignore it
             print("Ignoring %s %s/%s" % resource)
-            args = ["label", kind, name, "-n", namespace, "cdk-addons-", "cdk-restart-on-ca-change-"]
-        else:
-            # or delete it!
-            print("Deleting %s %s/%s" % resource)
-            args = ["delete", "--wait=false", kind, name, "-n", namespace]
+            _try_kubectl("label", kind, name, "-n", namespace, "cdk-addons-", "cdk-restart-on-ca-change-")
+            continue
 
-        try:
-            kubectl(*args)
-        except subprocess.CalledProcessError:
-            pass
+        # or delete it!
+        if namespace in deletable_namespaces:
+            namespaces_to_delete.add(namespace)
+
+        print("Deleting %s %s/%s" % resource)
+        _try_kubectl("delete", "--wait=false", kind, name, "-n", namespace)
 
     for namespace_to_delete in namespaces_to_delete:
-        args = ["delete", "--wait=false", "namespace", namespace_to_delete]
-        try:
-            kubectl(*args)
-        except subprocess.CalledProcessError:
-            pass
+        _try_kubectl("delete", "--wait=false", "namespace", namespace_to_delete)
 
 
 def kubectl(*args):

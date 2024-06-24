@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import base64
+import contextlib
 import json
 import os
 import shutil
@@ -13,6 +14,8 @@ from jinja2 import Template
 
 template_dir = os.path.join(os.environ["SNAP"], "templates")
 addon_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons")
+retired_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons-retired")
+render_dir = addon_dir
 dns_providers = {"core-dns": "core-dns.yaml", "kube-dns": "kube-dns.yaml"}
 deletable_namespaces = ["kubernetes-dashboard"]
 
@@ -27,9 +30,22 @@ def main():
         sys.exit(e.returncode)
 
 
+@contextlib.contextmanager
+def retired(addon: str):
+    global render_dir
+    try:
+        render_dir = retired_dir
+        print("Retiring addon: %s" % addon)
+        yield
+    finally:
+        render_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons")
+
+
 def render_templates():
     shutil.rmtree(addon_dir, ignore_errors=True)
     os.mkdir(addon_dir)
+    shutil.rmtree(retired_dir, ignore_errors=True)
+    os.mkdir(retired_dir)
     node_count = get_node_count()
     context = {
         "arch": get_snap_config("arch"),
@@ -87,97 +103,99 @@ def render_templates():
             render_template("kube-state-metrics-{}.yaml".format(t), context)
         rendered = True
     if get_snap_config("enable-ceph", required=False) == "true":
-        ceph_context = context.copy()
-        default_storage = get_snap_config("default-storage", required=True)
-        ceph_context["admin_key"] = base64.b64decode(
-            get_snap_config("ceph-admin-key", required=True)
-        ).decode("utf-8")
-        ceph_context["fsid"] = get_snap_config("ceph-fsid", required=True)
-        ceph_context["kubernetes_key"] = base64.b64decode(
-            get_snap_config("ceph-kubernetes-key", required=True)
-        ).decode("utf-8")
-        ceph_context["mon_hosts"] = json.dumps(
-            get_snap_config("ceph-mon-hosts", required=True).split()
-        )
-        ceph_context["user"] = get_snap_config("ceph-user", required=False) or "admin"
-
-        render_template("ceph-secret.yaml", ceph_context)
-        render_template("csi-config-map.yaml", ceph_context)
-        render_template("csi-rbdplugin.yaml", ceph_context)
-        render_template("csi-rbdplugin-provisioner.yaml", ceph_context)
-        render_template("ceph-csi-encryption-kms-config.yaml", ceph_context)
-        render_template("ceph-conf.yaml", ceph_context)
-
-        ext4_context = ceph_context.copy()
-        if default_storage == "ceph-ext4":
-            ext4_context["default"] = True
-        else:
-            ext4_context["default"] = False
-        ext4_context["pool_name"] = "ext4-pool"
-        ext4_context["fs_type"] = "ext4"
-        ext4_context["sc_name"] = "ceph-ext4"
-        render_template(
-            "ceph-storageclass.yaml",
-            ext4_context,
-            render_filename="ceph-ext4-storageclass.yaml",
-        )
-
-        xfs_context = ceph_context.copy()
-        if default_storage == "ceph-xfs" or default_storage == "auto":
-            xfs_context["default"] = True
-        else:
-            xfs_context["default"] = False
-        xfs_context["pool_name"] = "xfs-pool"
-        xfs_context["fs_type"] = "xfs"
-        xfs_context["sc_name"] = "ceph-xfs"
-        render_template(
-            "ceph-storageclass.yaml",
-            xfs_context,
-            render_filename="ceph-xfs-storageclass.yaml",
-        )
-        # RBAC
-        render_template("csi-nodeplugin-rbac.yaml", ceph_context)
-        render_template("csi-provisioner-rbac.yaml", ceph_context)
-
-        if get_snap_config("enable-cephfs", required=False) == "true":
-            cephfs_context = ceph_context.copy()
-            cephfs_context["default"] = default_storage == "cephfs"
-            cephfs_context["fsname"] = get_snap_config("ceph-fsname", required=True)
-            cephfs_context["mounter"] = (
-                get_snap_config("cephfs-mounter", required=False) or "default"
+        with retired("ceph"):
+            ceph_context = context.copy()
+            default_storage = get_snap_config("default-storage", required=True)
+            ceph_context["admin_key"] = base64.b64decode(
+                get_snap_config("ceph-admin-key", required=True)
+            ).decode("utf-8")
+            ceph_context["fsid"] = get_snap_config("ceph-fsid", required=True)
+            ceph_context["kubernetes_key"] = base64.b64decode(
+                get_snap_config("ceph-kubernetes-key", required=True)
+            ).decode("utf-8")
+            ceph_context["mon_hosts"] = json.dumps(
+                get_snap_config("ceph-mon-hosts", required=True).split()
             )
-            render_template("cephfs/secret.yaml", cephfs_context)
-            render_template("cephfs/csi-cephfsplugin.yaml", cephfs_context)
-            render_template("cephfs/csi-cephfsplugin-provisioner.yaml", cephfs_context)
-            render_template("cephfs/storageclass.yaml", cephfs_context)
-            render_template("cephfs/csi-nodeplugin-rbac.yaml", cephfs_context)
-            render_template("cephfs/csi-provisioner-rbac.yaml", cephfs_context)
-            render_template("cephfs/csidriver.yaml", cephfs_context)
+            ceph_context["user"] = get_snap_config("ceph-user", required=False) or "admin"
+
+            render_template("ceph-secret.yaml", ceph_context)
+            render_template("csi-config-map.yaml", ceph_context)
+            render_template("csi-rbdplugin.yaml", ceph_context)
+            render_template("csi-rbdplugin-provisioner.yaml", ceph_context)
+            render_template("ceph-csi-encryption-kms-config.yaml", ceph_context)
+            render_template("ceph-conf.yaml", ceph_context)
+
+            ext4_context = ceph_context.copy()
+            if default_storage == "ceph-ext4":
+                ext4_context["default"] = True
+            else:
+                ext4_context["default"] = False
+            ext4_context["pool_name"] = "ext4-pool"
+            ext4_context["fs_type"] = "ext4"
+            ext4_context["sc_name"] = "ceph-ext4"
+            render_template(
+                "ceph-storageclass.yaml",
+                ext4_context,
+                render_filename="ceph-ext4-storageclass.yaml",
+            )
+
+            xfs_context = ceph_context.copy()
+            if default_storage == "ceph-xfs" or default_storage == "auto":
+                xfs_context["default"] = True
+            else:
+                xfs_context["default"] = False
+            xfs_context["pool_name"] = "xfs-pool"
+            xfs_context["fs_type"] = "xfs"
+            xfs_context["sc_name"] = "ceph-xfs"
+            render_template(
+                "ceph-storageclass.yaml",
+                xfs_context,
+                render_filename="ceph-xfs-storageclass.yaml",
+            )
+            # RBAC
+            render_template("csi-nodeplugin-rbac.yaml", ceph_context)
+            render_template("csi-provisioner-rbac.yaml", ceph_context)
+
+            if get_snap_config("enable-cephfs", required=False) == "true":
+                cephfs_context = ceph_context.copy()
+                cephfs_context["default"] = default_storage == "cephfs"
+                cephfs_context["fsname"] = get_snap_config("ceph-fsname", required=True)
+                cephfs_context["mounter"] = (
+                    get_snap_config("cephfs-mounter", required=False) or "default"
+                )
+                render_template("cephfs/secret.yaml", cephfs_context)
+                render_template("cephfs/csi-cephfsplugin.yaml", cephfs_context)
+                render_template("cephfs/csi-cephfsplugin-provisioner.yaml", cephfs_context)
+                render_template("cephfs/storageclass.yaml", cephfs_context)
+                render_template("cephfs/csi-nodeplugin-rbac.yaml", cephfs_context)
+                render_template("cephfs/csi-provisioner-rbac.yaml", cephfs_context)
+                render_template("cephfs/csidriver.yaml", cephfs_context)
         rendered = True
     if get_snap_config("enable-keystone", required=False) == "true":
-        keystone_context = context.copy()
-        cert = get_snap_config("keystone-cert-file", required=True)
-        with open(cert, "rb") as image_file:
-            keystone_context["keystone_cert_file"] = base64.b64encode(
-                image_file.read()
-            ).decode("utf-8")
-        key = get_snap_config("keystone-key-file", required=True)
-        with open(key, "rb") as image_file:
-            keystone_context["keystone_key_file"] = base64.b64encode(
-                image_file.read()
-            ).decode("utf-8")
-        keystone_context["keystone_server_url"] = get_snap_config(
-            "keystone-server-url", required=True
-        )
-        keystone_context["keystone_server_ca"] = get_snap_config(
-            "keystone-server-ca", required=False
-        ).replace("\n", "")
+        with retired("keystone"):
+            keystone_context = context.copy()
+            cert = get_snap_config("keystone-cert-file", required=True)
+            with open(cert, "rb") as image_file:
+                keystone_context["keystone_cert_file"] = base64.b64encode(
+                    image_file.read()
+                ).decode("utf-8")
+            key = get_snap_config("keystone-key-file", required=True)
+            with open(key, "rb") as image_file:
+                keystone_context["keystone_key_file"] = base64.b64encode(
+                    image_file.read()
+                ).decode("utf-8")
+            keystone_context["keystone_server_url"] = get_snap_config(
+                "keystone-server-url", required=True
+            )
+            keystone_context["keystone_server_ca"] = get_snap_config(
+                "keystone-server-ca", required=False
+            ).replace("\n", "")
 
-        render_template("keystone-auth-certs-secret.yaml", keystone_context)
-        render_template("keystone-deployment.yaml", keystone_context)
-        render_template("keystone-service.yaml", keystone_context)
-        render_template("keystone-rbac.yaml", keystone_context)
-        rendered = True
+            render_template("keystone-auth-certs-secret.yaml", keystone_context)
+            render_template("keystone-deployment.yaml", keystone_context)
+            render_template("keystone-service.yaml", keystone_context)
+            render_template("keystone-rbac.yaml", keystone_context)
+            rendered = True
     if get_snap_config("enable-openstack", required=False) == "true":
         openstack_context = context.copy()
         openstack_context.update(
@@ -221,9 +239,9 @@ def render_templates():
 def render_template(file, context, required=True, render_filename=None):
     source = os.path.join(template_dir, file)
     if render_filename is None:
-        dest = os.path.join(addon_dir, file)
+        dest = os.path.join(render_dir, file)
     else:
-        dest = os.path.join(addon_dir, render_filename)
+        dest = os.path.join(render_dir, render_filename)
     if not os.path.exists(source) and not required:
         return
     # allow for sub-dirs
@@ -268,6 +286,9 @@ def prune_addons():
     """Deletes addons that have the cdk-addons=true label, but do not exist in
     the template dir.
 
+    Ignores the addons that are in the ignored_resources list by removing the
+    cdk-addons- label.
+
     We used to use kubectl apply --prune for this. Now we don't, because
     kubectl apply --prune is very, very disappointing.
 
@@ -277,9 +298,9 @@ def prune_addons():
 
     Instead of using that, we just have to do it ourselves.
     """
-    current_addons = set()
+    current_addons, ignored_addons = set(), set()
 
-    def _include_addon(part):
+    def _include_addon(addon_set, part):
         kind = part["kind"]
         # If no namespace is specified, it's either an unnamespaced
         # resource, or a namespaced resource that will end up in
@@ -287,22 +308,26 @@ def prune_addons():
         # as well put them in the same bucket.
         namespace = part["metadata"].get("namespace", "default")
         name = part["metadata"]["name"]
-        current_addons.add((kind, namespace, name))
+        addon_set.add((kind, namespace, name))
 
-    for root, _, filenames in os.walk(addon_dir):
-        for filename in filenames:
-            path = os.path.join(root, filename)
-            with open(path) as f:
-                data = yaml.safe_load_all(f)
-                for part in data:
-                    kind = part["kind"]
-                    if kind == "List":
-                        # yaml is a single kind:List instead of joined yaml parts
-                        for item in part["items"]:
-                            _include_addon(item)
-                    else:
-                        # yaml is a set of joined parts
-                        _include_addon(part)
+    def _assemble_addons(addon_set, path):
+        for root, _, filenames in os.walk(addon_dir):
+            for filename in filenames:
+                path = os.path.join(root, filename)
+                with open(path) as f:
+                    data = yaml.safe_load_all(f)
+                    for part in data:
+                        kind = part["kind"]
+                        if kind == "List":
+                            # yaml is a single kind:List instead of joined yaml parts
+                            for item in part["items"]:
+                                _include_addon(addon_set, item)
+                        else:
+                            # yaml is a set of joined parts
+                            _include_addon(addon_set, part)
+
+    _assemble_addons(current_addons, addon_dir)
+    _assemble_addons(ignored_addons, retired_dir)
 
     output = kubectl(
         "get",
@@ -342,16 +367,24 @@ def prune_addons():
         namespace = metadata.get("namespace") or "default"
         name = metadata["name"]
 
+        resource = kind, namespace, name
         # skip if it's a current addon
-        if (kind, namespace, name) in current_addons:
+        if resource in current_addons:
             continue
 
         if namespace in deletable_namespaces:
             namespaces_to_delete.add(namespace)
 
-        # it has our label but isn't a current addon, delete it!
-        print("Deleting %s %s/%s" % (kind, namespace, name))
-        args = ["delete", "--wait=false", kind, name, "-n", namespace]
+        # it has our label but isn't a current addon
+        if resource in ignored_addons:
+            # either actively ignore it
+            print("Ignoring %s %s/%s" % resource)
+            args = ["label", kind, name, "-n", namespace, "cdk-addons-"]
+        else:
+            # or delete it!
+            print("Deleting %s %s/%s" % resource)
+            args = ["delete", "--wait=false", kind, name, "-n", namespace]
+
         try:
             kubectl(*args)
         except subprocess.CalledProcessError:

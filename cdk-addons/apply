@@ -389,7 +389,7 @@ def prune_addons():
         if resource in ignored_addons:
             # either actively ignore it
             print("Ignoring %s %s/%s" % resource)
-            _try_kubectl("label", kind, name, "-n", namespace, "cdk-addons-", "cdk-restart-on-ca-change-")
+            _try_kubectl("label", kind, name, "-n", namespace, "cdk-addons-retired=true", "cdk-addons-", "cdk-restart-on-ca-change-")
             continue
 
         # or delete it!

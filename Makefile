@@ -16,14 +16,17 @@ PREV_RELEASE=release-1.28
 # NB: If we lock images to commits/versions, this could affect the image
 # version matching in ./get-addon-templates. Be careful here, and verify
 # any images we need based on commit are matched/substituted correctly.
-CEPH_CSI_COMMIT=fd10290fb811302eb81dc5e25d35f1aa06f04b4d # v3.8.1
-# Note: Ceph CSI to 3.8.1 as it is not recommended to upgrade from 3.7.x to 3.9.x directly
 COREDNS_COMMIT=31e9b6e2229300280f9788b1eaf1eb18c1b2d5c6 #v1.9.4
-OPENSTACK_PROVIDER_COMMIT=86510a9055a46886d9832a71c1494499a1e7816c # v1.28.1
-K8S_KEYSTONE_AUTH_IMAGE_VER=v1.28.1  # override keystone auth image
 KUBE_DASHBOARD_COMMIT=42deb6b32a27296ac47d1f9839a68fab6053e5fc # v2.7.0
 KUBE_STATE_METRICS_COMMIT=c90c81cb3b6bc27d08791482f0517682b39f3ccd # v2.10.1
+
+## --- RETIRED ADDONS ---
+CEPH_CSI_COMMIT=fd10290fb811302eb81dc5e25d35f1aa06f04b4d # v3.8.1
+# Note: Ceph CSI to 3.8.1 as it is not recommended to upgrade from 3.7.x to 3.9.x directly
+K8S_KEYSTONE_AUTH_IMAGE_VER=v1.28.1  # override keystone auth image
+OPENSTACK_PROVIDER_COMMIT=86510a9055a46886d9832a71c1494499a1e7816c # v1.28.1
 K8S_DEVICE_PLUGIN_COMMIT=07150673a9d2055b16482e21b66be15753ce2a8e # v0.14.3
+
 
 default: prep
 	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl

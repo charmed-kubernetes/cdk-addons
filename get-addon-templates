@@ -235,7 +235,7 @@ def patch_cephfs_secret(repo, file):
     source, manifest = load_yaml_file_from_repo(repo, file)
     manifest["stringData"]["adminID"] = "{{ user }}"
     manifest["stringData"]["adminKey"] = "{{ admin_key }}"
-    # k8s-master just passes in the admin key for both
+    # k8s-control-plane just passes in the admin key for both
     manifest["stringData"]["userID"] = "{{ user }}"
     manifest["stringData"]["userKey"] = "{{ kubernetes_key }}"
     with open(source, "w") as yaml_file:

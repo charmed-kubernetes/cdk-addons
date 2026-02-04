@@ -18,7 +18,7 @@ PREV_RELEASE=release-1.34
 # any images we need based on commit are matched/substituted correctly.
 COREDNS_COMMIT=31e9b6e2229300280f9788b1eaf1eb18c1b2d5c6 #v1.9.4
 KUBE_DASHBOARD_COMMIT=42deb6b32a27296ac47d1f9839a68fab6053e5fc # v2.7.0
-KUBE_STATE_METRICS_COMMIT=c90c81cb3b6bc27d08791482f0517682b39f3ccd # v2.10.1
+KUBE_STATE_METRICS_COMMIT=4a585c91beffdbd1378833ce5f102b401e7e57c5 # v2.15.1
 
 ## --- RETIRED ADDONS ---
 CEPH_CSI_COMMIT=fd10290fb811302eb81dc5e25d35f1aa06f04b4d # v3.8.1
@@ -29,7 +29,7 @@ K8S_DEVICE_PLUGIN_COMMIT=07150673a9d2055b16482e21b66be15753ce2a8e # v0.14.3
 
 
 default: prep
-	wget -O ${BUILD}/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl
+	wget -O ${BUILD}/kubectl https://dl.k8s.io/${KUBE_VERSION}/bin/linux/${KUBE_ARCH}/kubectl
 	chmod +x ${BUILD}/kubectl
 	sed 's/KUBE_VERSION/${KUBE_ERSION}/g' cdk-addons.yaml > ${BUILD}/snapcraft.yaml
 	sed -i "s/KUBE_ARCH/${KUBE_ARCH}/g" ${BUILD}/snapcraft.yaml

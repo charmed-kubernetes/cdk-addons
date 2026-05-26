@@ -17,7 +17,6 @@ addon_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons")
 retired_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons-retired")
 render_dir = addon_dir
 dns_providers = {"core-dns": "core-dns.yaml", "kube-dns": "kube-dns.yaml"}
-deletable_namespaces = []
 
 
 def main():
@@ -361,7 +360,6 @@ def prune_addons():
     )
     data = json.loads(output)
 
-    namespaces_to_delete = set()
 
     for item in data["items"]:
         kind = item["kind"]
@@ -384,14 +382,9 @@ def prune_addons():
             continue
 
         # or delete it!
-        if namespace in deletable_namespaces:
-            namespaces_to_delete.add(namespace)
-
         print("Deleting %s %s/%s" % resource)
         _try_kubectl("delete", "--wait=false", kind, name, "-n", namespace)
 
-    for namespace_to_delete in namespaces_to_delete:
-        _try_kubectl("delete", "--wait=false", "namespace", namespace_to_delete)
 
 
 def kubectl(*args):

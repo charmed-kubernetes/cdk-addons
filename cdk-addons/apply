@@ -385,6 +385,11 @@ def prune_addons():
         print("Deleting %s %s/%s" % resource)
         _try_kubectl("delete", "--wait=false", kind, name, "-n", namespace)
 
+    # 1.36 migration: explicitly remove the kubernetes-dashboard namespace
+    # Individual resources are cleaned up above via label-based pruning,
+    # but the namespace object itself must be deleted explicitly.
+    _try_kubectl("delete", "--wait=false", "--ignore-not-found", "namespace", "kubernetes-dashboard")
+
 
 
 def kubectl(*args):

@@ -350,7 +350,6 @@ def patch_openstack_registries(repo, file):
     source.write_text(content)
 
 
-
 def patch_coredns(repo, file):
     source = os.path.join(repo, file)
     with open(source, "r") as f:
@@ -392,7 +391,6 @@ def get_addon_templates():
         add_addon(repo, "metrics-server/metrics-server-deployment.yaml", dest)
         add_addon(repo, "metrics-server/metrics-server-service.yaml", dest)
         add_addon(repo, "metrics-server/resource-reader.yaml", dest)
-
 
     with nvidia_plugin_repo() as repo:
         log.info("Copying nvidia plugin to " + dest)

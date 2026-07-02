@@ -17,7 +17,6 @@ addon_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons")
 retired_dir = os.path.join(os.environ["SNAP_USER_DATA"], "addons-retired")
 render_dir = addon_dir
 dns_providers = {"core-dns": "core-dns.yaml", "kube-dns": "kube-dns.yaml"}
-deletable_namespaces = ["kubernetes-dashboard"]
 
 
 def main():
@@ -70,16 +69,6 @@ def render_templates():
     dns_provider = get_snap_config("dns-provider")
     if dns_provider in dns_providers:
         render_template(dns_providers[dns_provider], context)
-        rendered = True
-    if get_snap_config("enable-dashboard") == "true":
-        dash_context = context.copy()
-        dash_context["dashboard_auth"] = get_snap_config(
-            "dashboard-auth", required=False
-        )
-        if not dash_context["dashboard_auth"]:
-            # default to basic auth as it used to be hard-coded
-            dash_context["dashboard_auth"] = "basic"
-        render_template("kubernetes-dashboard.yaml", dash_context)
         rendered = True
     if get_snap_config("enable-gpu", required=False) == "true":
         with retired("gpu"):
@@ -371,7 +360,6 @@ def prune_addons():
     )
     data = json.loads(output)
 
-    namespaces_to_delete = set()
 
     for item in data["items"]:
         kind = item["kind"]
@@ -394,14 +382,14 @@ def prune_addons():
             continue
 
         # or delete it!
-        if namespace in deletable_namespaces:
-            namespaces_to_delete.add(namespace)
-
         print("Deleting %s %s/%s" % resource)
         _try_kubectl("delete", "--wait=false", kind, name, "-n", namespace)
 
-    for namespace_to_delete in namespaces_to_delete:
-        _try_kubectl("delete", "--wait=false", "namespace", namespace_to_delete)
+    # 1.36 migration: explicitly remove the kubernetes-dashboard namespace
+    # Individual resources are cleaned up above via label-based pruning,
+    # but the namespace object itself must be deleted explicitly.
+    _try_kubectl("delete", "--wait=false", "--ignore-not-found", "namespace", "kubernetes-dashboard")
+
 
 
 def kubectl(*args):

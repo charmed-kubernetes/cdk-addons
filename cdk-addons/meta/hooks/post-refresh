@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+# 1.36 migration: remove config keys that no longer exist in this snap.
+# snapd persists these across upgrades; unset them so they don't linger.
+for key in enable-dashboard dashboard-auth; do
+    snapctl unset "$key" 2>/dev/null || true
+done

@@ -71,10 +71,6 @@ kubernetes_repo = repo_cloner(
     branch=os.environ["KUBE_VERSION"],
 )
 
-kubernetes_dashboard_repo = repo_cloner(
-    url="https://github.com/kubernetes/dashboard.git",
-    commit=os.environ["KUBE_DASHBOARD_COMMIT"],
-)
 
 nvidia_plugin_repo = repo_cloner(
     url="https://github.com/NVIDIA/k8s-device-plugin.git",
@@ -354,19 +350,6 @@ def patch_openstack_registries(repo, file):
     source.write_text(content)
 
 
-def patch_dashboard(repo, file):
-    source = os.path.join(repo, file)
-    with open(source, "r") as f:
-        content = f.read()
-    content = content.replace(
-        "- --auto-generate-certificates",
-        """- --auto-generate-certificates
-            - --authentication-mode={{ dashboard_auth }}""",
-    )
-    with open(source, "w") as f:
-        f.write(content)
-
-
 def patch_coredns(repo, file):
     source = os.path.join(repo, file)
     with open(source, "r") as f:
@@ -408,17 +391,6 @@ def get_addon_templates():
         add_addon(repo, "metrics-server/metrics-server-deployment.yaml", dest)
         add_addon(repo, "metrics-server/metrics-server-service.yaml", dest)
         add_addon(repo, "metrics-server/resource-reader.yaml", dest)
-
-    with kubernetes_dashboard_repo() as repo:
-        log.info("Copying dashboard to " + dest)
-        dashboard_yaml = "aio/deploy/recommended.yaml"
-        patch_dashboard(repo, dashboard_yaml)
-        add_addon(
-            repo,
-            dashboard_yaml,
-            os.path.join(dest, "kubernetes-dashboard.yaml"),
-            base=".",
-        )
 
     with nvidia_plugin_repo() as repo:
         log.info("Copying nvidia plugin to " + dest)
